@@ -227,7 +227,7 @@ class TemplateActivity : BaseActivity() {
         })
     }
 
-    private fun addLogoAndOthers() {
+    private fun addOpiniLogoAndText() {
         setProgressDialog()
         FileUtility.checkFileExists("_oneminute.mp4", BASE_OUTPUT_PATH)
         val fFmpeg = FFmpeg.getInstance(this)
