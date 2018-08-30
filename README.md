@@ -1,2 +1,2 @@
 # android-FFMPEG
-github for opini video creation tool
+Temporary repository for video creation tool integrated with android
