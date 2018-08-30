@@ -316,7 +316,7 @@ class TemplateActivity : BaseActivity() {
         })
     }
 
-    private fun concatVideos() {
+    private fun concatVideoExample() {
         setProgressDialog()
         val outputName = BASE_OUTPUT_PATH + "_concat.mp4"
         val videoName1 = BASE_OUTPUT_PATH + "_baseVidWithText.mp4"
