@@ -295,12 +295,12 @@ class TemplateActivity : BaseActivity() {
         })
     }
 
-    private fun generateFFMPEG() {
+    private fun generateVideoWithBackgroundImage() {
         setProgressDialog()
         val outputName = "_baseVid.mp4"
         val backgroundName = BASE_TEMPLATE_DIR + "Background.png"
         val fFmpeg = FFmpeg.getInstance(this)
-        val command = arrayOf("-loop", "1", "-i", mPath, "-filter_complex", "format=yuv420p[fuck]; [fuck]scale=720:720", "-t", "5", BASE_OUTPUT_PATH + outputName)
+        val command = arrayOf("-loop", "1", "-i", mPath, "-filter_complex", "format=yuv420p[vid]; [vid]scale=720:720", "-t", "5", BASE_OUTPUT_PATH + outputName)
         FileUtility.checkFileExists(outputName, BASE_OUTPUT_PATH)
         fFmpeg.execute(command, object : ExecuteBinaryResponseHandler() {
             override fun onSuccess(message: String?) {
