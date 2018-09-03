@@ -53,9 +53,12 @@ class TemplateActivity : BaseActivity() {
         generate.setOnClickListener {
             //            concatVideos()
 //            generateFFMPEG()
-//            zoomExample()
+            zoomExample()
 //            addLogoAndOthers()
-            addSolidColor()
+//            addSolidColor()
+            val text = "Atlet sepeda\nIndonesia punya\naturan ketat"
+            val numberOfLines = OneMinuteCommandVideoBuilder.returnNumberOfEnterInText(text)
+            Log.d("Lines","$numberOfLines")
         }
     }
 
@@ -65,7 +68,7 @@ class TemplateActivity : BaseActivity() {
 
     private fun zoomExample() {
 //        https://opini.id/video/113090/larangan-unik-atlet-pesepeda
-        setProgressDialog()
+//        setProgressDialog()
         val outputName = BASE_OUTPUT_PATH + "_zoomTest.mp4"
         val fFmpeg = FFmpeg.getInstance(this)
         val imageOpening = BASE_TEMPLATE_DIR + "intro.jpg"
@@ -84,6 +87,24 @@ class TemplateActivity : BaseActivity() {
         val slideSpeed = "2200"
         FileUtility.checkFileExists("_ZoomTest.mp4", BASE_OUTPUT_PATH)
         /*-78 for 1menit, 75 for oh gitu, h = h-210*/
+
+        val imageNames = arrayListOf(imageOpening, image1, image2, image3, image4, image5, image6, image7, image8, image9, image10)
+        val textString = arrayListOf("Larangan Unik\nAtlet Pesepeda", /*title*/
+                "Atlet sepeda\nIndonesia punya\naturan ketat",
+                "Tujuannya dongkrak\npenampilan di\nAsian Games 2018", "Salah satunya\nlarangan hubungan\nintim jelang lomba",
+                "Agar gak ganggu\nperforma atlet","Apalagi yang\nbertanding\njarak pendek",
+                "Ini hasil\npengalaman pelatih\nDadang H.Purnomo","Ketika masih\njadi atlet sepeda",
+                "Puasa ini akan\nberbuah manis","PB ISSI akan siapkan\nbonus 1 milliar",
+                "Untuk atlet\npenyumbang\nmedali emas")
+
+        val commands = OneMinuteCommandVideoBuilder.withTotal(imageNames.size)
+                .generateInputStringArraysWithFilterComplexCommand(imageNames, null)
+                .generateStringBuilderScaleCommand("scale", "720")
+                .generateStringBuilderZoomPanCommand("zoom", "45", "180", "720x720")
+                .buildString()
+
+        Log.e("command","$commands")
+
         val command = arrayOf(
                 "-i", imageOpening,
                 "-i", image1,
@@ -213,18 +234,18 @@ class TemplateActivity : BaseActivity() {
                         "[text1][text2][text3][text4][text5][text6][text7][text8][text9][text10][text11]concat=n=11:v=1:a=0, " +
                         "format=yuv420p[v]", "-map", "[v]", outputName)
 
-        fFmpeg.execute(command, object : ExecuteBinaryResponseHandler() {
-            override fun onSuccess(message: String?) {
-                mMaterialDialog?.dismiss()
-                Toast.makeText(this@TemplateActivity, "Good", Toast.LENGTH_SHORT).show()
-            }
-
-            override fun onFailure(message: String?) {
-                mMaterialDialog?.dismiss()
-                Log.e("Error", "$message")
-                Toast.makeText(this@TemplateActivity, "Ooops zoom in error", Toast.LENGTH_SHORT).show()
-            }
-        })
+//        fFmpeg.execute(command, object : ExecuteBinaryResponseHandler() {
+//            override fun onSuccess(message: String?) {
+//                mMaterialDialog?.dismiss()
+//                Toast.makeText(this@TemplateActivity, "Good", Toast.LENGTH_SHORT).show()
+//            }
+//
+//            override fun onFailure(message: String?) {
+//                mMaterialDialog?.dismiss()
+//                Log.e("Error", "$message")
+//                Toast.makeText(this@TemplateActivity, "Ooops zoom in error", Toast.LENGTH_SHORT).show()
+//            }
+//        })
     }
 
     private fun addOpiniLogoAndText() {
@@ -266,7 +287,7 @@ class TemplateActivity : BaseActivity() {
         val outputVideo = BASE_OUTPUT_PATH + "_oneMinuteFinal.mp4"
         val inputVideo = BASE_OUTPUT_PATH + "_oneminute.mp4"
         val imageLogo = BASE_TEMPLATE_DIR + "logo2.png"
-        val command = arrayOf(
+        val command = mutableListOf(
                 "-i", inputVideo, /*[0:v]*/
 
                 "-f", "lavfi", "-i", "color=c=0x00FFD8:s=720x720", /*teal*/ /*[1:v]*/
@@ -281,7 +302,7 @@ class TemplateActivity : BaseActivity() {
                 "[0:v][image1]overlay=enable=gt(t\\,45.01):shortest=1, format=yuv420p[ovr1];" +
                 "[ovr1][2:v]overlay=shortest=1:y=(t-45)*2100, format=yuv420p"
                 , outputVideo)
-        fFmpeg.execute(command, object: ExecuteBinaryResponseHandler() {
+        fFmpeg.execute(command.toTypedArray(), object: ExecuteBinaryResponseHandler() {
             override fun onSuccess(message: String?) {
                 mMaterialDialog?.dismiss()
                 Toast.makeText(this@TemplateActivity, "Good", Toast.LENGTH_SHORT).show()
