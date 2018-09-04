@@ -1,5 +1,8 @@
 package com.gvm.demoffmpeg
 
+import android.os.Environment
+import java.util.*
+
 /**
  * Brought to you by rickykurniawan on 30/08/18.
  */
@@ -9,6 +12,13 @@ object OneMinuteCommandVideoBuilder {
     private var mGeneratedString: MutableList<String> = mutableListOf()
     private var mFilterComplexString: StringBuilder = StringBuilder()
     private var mPreviousLabelName: String = ""
+
+    private const val mDirectoryName = "/Demo2"
+    val mBasePath = Environment.getExternalStorageDirectory().path + mDirectoryName
+    val BASE_FONT_DIR = "$mBasePath/fontDemo2/"
+    val BASE_TEMPLATE_DIR = "$mBasePath/templateDemo2/"
+    val BASE_OUTPUT_PATH = "$mBasePath/output/"
+
 
     /**
      * Call clear first just to be safe
@@ -56,14 +66,17 @@ object OneMinuteCommandVideoBuilder {
     fun generateStringBuilderZoomPanCommand(labelName: String, framePerSecond: String, durationInFrame: String, scale: String):
             OneMinuteCommandVideoBuilder {
         val builder = StringBuilder()
+        val defaultEndDuration = "405" /*Duration for last slide that contains punchline*/
+
         builder.append("[${mPreviousLabelName}1]zoompan=z=1:fps=$framePerSecond:s=$scale:d=80[${labelName}1]; ")
         for (index in 2 until  mNumberOfInputs) {
             /*give no zoom effect first*/
-            builder.append("[$mPreviousLabelName$index]zoompan=z=1:fps=$framePerSecond:s=$scale:d=$durationInFrame[$labelName$index]; ")
+            builder.append("[$mPreviousLabelName$index]${generateZoomPanCommand()}:fps=$framePerSecond:s=$scale:d=$durationInFrame[$labelName$index]; ")
         }
-        builder.append("[$mPreviousLabelName$mNumberOfInputs]zoompan=z=1:fps=$framePerSecond:s=$scale:d=405[$labelName$mNumberOfInputs]; ")
+        builder.append("[$mPreviousLabelName$mNumberOfInputs]${generateZoomPanCommand()}:fps=$framePerSecond:s=$scale:" +
+        "d=$defaultEndDuration[$labelName$mNumberOfInputs]; ")
+
         mFilterComplexString.append(builder.toString())
-        mGeneratedString.add(mFilterComplexString.toString())
         mPreviousLabelName = labelName
         return this
     }
@@ -75,6 +88,7 @@ object OneMinuteCommandVideoBuilder {
         val slideSpeed = "2200"
         val fontSize = "63"
         val fontSize2 = "75"
+        val latoBlack = BASE_FONT_DIR + "Lato-Black.ttf"
 
         /*for title and cover page (page 0)*/
         builder.append("[${mPreviousLabelName}1]drawbox=y=(ih-200):color=black@0.5:width=iw:height=210:t=fill, " +
@@ -82,17 +96,17 @@ object OneMinuteCommandVideoBuilder {
                 ":x=40:y=${returnDrawTextYPosition(title)}:fontsize=70:line_spacing=12.0:text_shaping=0:fontcolor=white," +
                 "drawbox=y=${returnDrawBoxYPositionForTitleSlide(title)}:color=0x0087EA:width=iw:height=45:t=fill," +
                 "drawbox=y=${returnDrawBoxYPositionForTitleSlide(title)}:color=0x00FFD8:width=165:height=45:t=fill," +
-                "drawtext=fontfile=$fontFile:text='1MENIT':fontcolor=black:fontsize=27:x=30:y=h-235," +
-                "drawtext=fontfile=$fontFile:text='OH GITU!':fontcolor=white:fontsize=27:x=195:y=h-235[${labelName}1]")
+                "drawtext=fontfile=$latoBlack:text='1MENIT':fontcolor=black:fontsize=27:x=30:y=h-235," +
+                "drawtext=fontfile=$latoBlack:text='OH GITU!':fontcolor=white:fontsize=27:x=195:y=h-235[${labelName}1];")
 
         for (index in 2 until mNumberOfInputs) {
             val text = texts[index - 1]
             val drawTextXPosition = "if(lt(t\\,0.1)\\,-tw\\,min(40\\,-tw+($slideSpeed*(t-0.1))))"
 
             /*For slides page*/
-            builder.append("[$mPreviousLabelName$index] drawbox=y=${returnDrawBoxHeight(text)}:" +
+            builder.append("[$mPreviousLabelName$index] drawbox=y=${returnDrawBoxYPosition(text)}:" +
             "color=black@0.5:width=iw:height=${returnDrawBoxHeight(text)}:t=fill, " +
-            "drawtext=fontFile=$fontFile: text='$text':x=$drawTextXPosition:y=${returnDrawTextYPosition(text)}:fontsize=$fontSize:" +
+            "drawtext=fontfile=$fontFile: text='$text':x=$drawTextXPosition:y=${returnDrawTextYPosition(text)}:fontsize=$fontSize:" +
             "line_spacing=12.0:fontcolor=white:alpha=if(gte(t\\,7)\\,0\\, 1)[$labelName$index];")
         }
         /*For closing page*/
@@ -102,7 +116,7 @@ object OneMinuteCommandVideoBuilder {
 
                 "drawbox=enable=between(t\\,0\\,3.5):y=${returnDrawBoxYPosition(lastText)}:color=black@0.5:" +
                 "width=iw:height=${returnDrawBoxHeight(lastText)}:t=fill, " +
-                "drawtext=fontfile=$fontFile:text=$lastText:x=if(lt(t\\,0.1)\\,-tw\\,min(40\\,-tw+($slideSpeed*(t-0.1))))" +
+                "drawtext=fontfile=$fontFile:text='$lastText':x=if(lt(t\\,0.1)\\,-tw\\,min(40\\,-tw+($slideSpeed*(t-0.1))))" +
                 ":y=h-220:fontsize=$fontSize:line_spacing=12.0:text_shaping=0:fontcolor=white:" +
                 "alpha=if(gte(t\\,3.5)\\,0\\, 1), " +
 
@@ -132,6 +146,14 @@ object OneMinuteCommandVideoBuilder {
         return this
     }
 
+    private fun generateZoomPanCommand(): String {
+        val random = Random().nextInt(2)
+        return when (random) {
+            0 -> "scale=8000:-1, zoompan=z=min(zoom+0.0015\\, 1.5):y=(ih/2)-(ih/zoom/2)"
+            else -> "zoompan=z=if(lte(zoom\\,1.0)\\,1.5\\,max(1.001\\,zoom - 0.0015))"
+        }
+    }
+
     fun generateCommandForConcat(): OneMinuteCommandVideoBuilder {
         val builder = StringBuilder()
         for (index in 1 .. mNumberOfInputs) {
@@ -144,7 +166,7 @@ object OneMinuteCommandVideoBuilder {
         return this
     }
 
-    fun output(outputName: String): OneMinuteCommandVideoBuilder {
+    fun generateOutput(outputName: String): OneMinuteCommandVideoBuilder {
         mGeneratedString.add("-map")
         mGeneratedString.add("[video]")
         mGeneratedString.add(outputName)

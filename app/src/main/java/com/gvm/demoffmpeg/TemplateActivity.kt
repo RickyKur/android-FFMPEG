@@ -68,8 +68,8 @@ class TemplateActivity : BaseActivity() {
 
     private fun zoomExample() {
 //        https://opini.id/video/113090/larangan-unik-atlet-pesepeda
-//        setProgressDialog()
-        val outputName = BASE_OUTPUT_PATH + "_zoomTest.mp4"
+        setProgressDialog()
+        val outputName = BASE_OUTPUT_PATH + "_zoomTestCommand.mp4"
         val fFmpeg = FFmpeg.getInstance(this)
         val imageOpening = BASE_TEMPLATE_DIR + "intro.jpg"
         val image1 = BASE_TEMPLATE_DIR + "bike1.jpg"
@@ -85,7 +85,7 @@ class TemplateActivity : BaseActivity() {
         val fontSize = "63"
         val fontSize2 = "75"
         val slideSpeed = "2200"
-        FileUtility.checkFileExists("_ZoomTest.mp4", BASE_OUTPUT_PATH)
+        FileUtility.checkFileExists("_zoomTestCommand.mp4", BASE_OUTPUT_PATH)
         /*-78 for 1menit, 75 for oh gitu, h = h-210*/
 
         val imageNames = arrayListOf(imageOpening, image1, image2, image3, image4, image5, image6, image7, image8, image9, image10)
@@ -101,9 +101,10 @@ class TemplateActivity : BaseActivity() {
                 .generateInputStringArraysWithFilterComplexCommand(imageNames, null)
                 .generateStringBuilderScaleCommand("scale", "720")
                 .generateStringBuilderZoomPanCommand("zoom", "45", "180", "720x720")
+                .generateStringBuilderDrawTextBoxCommand("text", textString[0], textString, BASE_FONT_DIR + "Lato-Bold.ttf")
+                .generateCommandForConcat()
+                .generateOutput(outputName)
                 .buildString()
-
-        Log.e("command","$commands")
 
         val command = arrayOf(
                 "-i", imageOpening,
@@ -234,18 +235,18 @@ class TemplateActivity : BaseActivity() {
                         "[text1][text2][text3][text4][text5][text6][text7][text8][text9][text10][text11]concat=n=11:v=1:a=0, " +
                         "format=yuv420p[v]", "-map", "[v]", outputName)
 
-//        fFmpeg.execute(command, object : ExecuteBinaryResponseHandler() {
-//            override fun onSuccess(message: String?) {
-//                mMaterialDialog?.dismiss()
-//                Toast.makeText(this@TemplateActivity, "Good", Toast.LENGTH_SHORT).show()
-//            }
-//
-//            override fun onFailure(message: String?) {
-//                mMaterialDialog?.dismiss()
-//                Log.e("Error", "$message")
-//                Toast.makeText(this@TemplateActivity, "Ooops zoom in error", Toast.LENGTH_SHORT).show()
-//            }
-//        })
+        fFmpeg.execute(commands.toTypedArray(), object : ExecuteBinaryResponseHandler() {
+            override fun onSuccess(message: String?) {
+                mMaterialDialog?.dismiss()
+                Toast.makeText(this@TemplateActivity, "Good", Toast.LENGTH_SHORT).show()
+            }
+
+            override fun onFailure(message: String?) {
+                mMaterialDialog?.dismiss()
+                Log.e("Error", "$message")
+                Toast.makeText(this@TemplateActivity, "Ooops zoom in error", Toast.LENGTH_SHORT).show()
+            }
+        })
     }
 
     private fun addOpiniLogoAndText() {
