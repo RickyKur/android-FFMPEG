@@ -1,3 +1,11 @@
 <resources>
     <string name="app_name">DemoFFMPEG</string>
+    <string name="string_inspiratif">Inspiratif</string>
+    <string name="string_kelakuan">Kelakuan</string>
+    <string name="string_ohgitu">Oh Gitu!</string>
+    <string name="string_bangga">Bangga</string>
+    <string name="string_semesta">Semesta</string>
+    <string name="string_kisah">Kisah</string>
+    <string name="string_aha">Aha!</string>
+    <string name="string_politik">Politik</string>
 </resources>
