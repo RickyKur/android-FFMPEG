@@ -11,8 +11,8 @@ import com.gvm.demoffmpeg.R
  */
 class SlideItemAdapter(private val context: Context) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
-    private var mSlideItems = arrayListOf<SlideItemModel>()
-    private var mPunchLine = SlideItemModel("PunchLine", "")
+    var mSlideItems = arrayListOf<SlideItemModel>()
+    var mPunchLine = SlideItemModel()
 
     private val slideItem = 0
     private var slideItemPlus = 1
@@ -32,7 +32,7 @@ class SlideItemAdapter(private val context: Context) : RecyclerView.Adapter<Recy
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
        if (holder is SlideItemVH) {
-           val punchLine = position >= mSlideItems.size
+           val punchLine = isPunchLine(position)
            val slideItemModel = if (punchLine) mPunchLine
            else mSlideItems[position]
            holder.bind(slideItemModel, punchLine)
@@ -50,8 +50,12 @@ class SlideItemAdapter(private val context: Context) : RecyclerView.Adapter<Recy
         return mSlideItems.size + 2
     }
 
+    fun isPunchLine(position: Int): Boolean {
+        return (position >= mSlideItems.size)
+    }
+
     fun getSlideItems(position: Int): SlideItemModel {
-        return if (position >= mSlideItems.size) mPunchLine
+        return if (isPunchLine(position)) mPunchLine
         else mSlideItems[position]
     }
 
@@ -65,14 +69,6 @@ class SlideItemAdapter(private val context: Context) : RecyclerView.Adapter<Recy
         getSlideItems(position).selected = !getSlideItems(position).selected
         notifyItemChanged(position)
     }
-
-//    fun setUnSelected(position: Int) {
-//        val slideItem = getSlideItems(position)
-//        if (slideItem.selected) {
-//            slideItem.selected = false
-//        }
-//        notifyItemChanged(position)
-//    }
 
     fun removeItem(position: Int) {
         mSlideItems.removeAt(position)

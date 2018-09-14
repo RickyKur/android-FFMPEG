@@ -2,6 +2,8 @@ package com.gvm.demoffmpeg.slideitem
 
 import android.support.v7.widget.RecyclerView
 import android.view.View
+import android.widget.ImageView
+import com.bumptech.glide.Glide
 import com.gvm.demoffmpeg.R
 import kotlinx.android.synthetic.main.slide_item.view.*
 
@@ -13,6 +15,7 @@ class SlideItemVH(itemView: View, private val listener: SlideItemListener) : Rec
     fun bind(slideItemModel: SlideItemModel, isPunchLine: Boolean) {
         setTitle(isPunchLine)
         setText(isPunchLine)
+        setImagePreviewThumbnail(slideItemModel)
         setDeleteButtonVisibility(isPunchLine)
         setBackground(slideItemModel.selected)
         setClickEvent()
@@ -48,6 +51,16 @@ class SlideItemVH(itemView: View, private val listener: SlideItemListener) : Rec
         else R.drawable.cardview_bg
 
         itemView.slide_item_bg.setBackgroundResource(background)
+    }
+
+    private fun setImagePreviewThumbnail(slideItemModel: SlideItemModel) {
+        val imagePath = slideItemModel.imagePath
+        if (imagePath.isNotEmpty()) {
+            itemView.slide_thumbnail.visibility = View.VISIBLE
+            Glide.with(itemView.context).load(imagePath).into(itemView.slide_thumbnail.getChildAt(0) as ImageView)
+        } else {
+            itemView.slide_thumbnail.visibility = View.GONE
+        }
     }
 
     private fun setClickEvent() {

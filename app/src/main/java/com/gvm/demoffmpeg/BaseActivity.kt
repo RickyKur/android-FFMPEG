@@ -16,12 +16,11 @@ import nl.bravobit.ffmpeg.FFmpeg
 abstract class BaseActivity : AppCompatActivity() {
 
     companion object {
-        const val mDirectoryName = "/Demo2"
+        private const val mDirectoryName = "/Demo2"
         val mBasePath = Environment.getExternalStorageDirectory().path + mDirectoryName
         val BASE_FONT_DIR = "$mBasePath/fontDemo2/"
         val BASE_TEMPLATE_DIR = "$mBasePath/templateDemo2/"
         val BASE_OUTPUT_PATH = "$mBasePath/output/"
-
 
         const val PERMISSION_WRITE = 1
         const val PERMISSION_READ = 2
@@ -42,6 +41,12 @@ abstract class BaseActivity : AppCompatActivity() {
         val isSupported = FFmpeg.getInstance(this).isSupported
         val log = if (isSupported) "DEVICE IS SUPPORTED" else "DEVICE NOT SUPPORTED"
         Log.e("FFMPEG init", log)
+    }
+
+    open fun setProgressDialog() {
+        mMaterialDialogBuilder.content("Wait")
+        mMaterialDialogBuilder.progressIndeterminateStyle(true)
+        mMaterialDialog = mMaterialDialogBuilder.show()
     }
 
     open fun checkForPermission() {

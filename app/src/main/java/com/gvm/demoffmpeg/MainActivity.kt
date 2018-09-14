@@ -19,7 +19,6 @@ import java.io.File
 @SuppressLint("Registered")
 class MainActivity : BaseActivity() {
 
-
     private val mSingleObservable = Single.fromCallable {
         FileUtility.copyDirOrFileFromAsset(applicationContext, "fonts", BASE_FONT_DIR)
         FileUtility.copyDirOrFileFromAsset(applicationContext, "template", BASE_TEMPLATE_DIR)
@@ -46,7 +45,7 @@ class MainActivity : BaseActivity() {
     }
 
     private fun doOperations() {
-        setProgressDialog()
+        setProgress()
         checkBasePath()
         initDisposableObserver()
     }
@@ -57,7 +56,7 @@ class MainActivity : BaseActivity() {
         actionBar?.setHomeButtonEnabled(true)
     }
 
-    private fun setProgressDialog() {
+    private fun setProgress() {
         mMaterialDialogBuilder.content("Transporting assets file to sdcard, please wait")
         mMaterialDialogBuilder.progressIndeterminateStyle(true)
         mMaterialDialogBuilder.progress(false, 250)

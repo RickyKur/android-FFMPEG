@@ -40,12 +40,6 @@ class TemplateActivity : BaseActivity() {
                 .theme(Theme.LIGHT)
     }
 
-    private fun setProgressDialog() {
-        mMaterialDialogBuilder.content("Wait")
-        mMaterialDialogBuilder.progressIndeterminateStyle(false)
-        mMaterialDialog = mMaterialDialogBuilder.show()
-    }
-
     private fun setListener() {
         thumbnail.setOnClickListener {
             FileUtility.getImageFromGallery(this)
@@ -56,9 +50,9 @@ class TemplateActivity : BaseActivity() {
             zoomExample()
 //            addLogoAndOthers()
 //            addSolidColor()
-            val text = "Atlet sepeda\nIndonesia punya\naturan ketat"
-            val numberOfLines = OneMinuteCommandVideoBuilder.returnNumberOfEnterInText(text)
-            Log.d("Lines","$numberOfLines")
+//            val text = "Atlet sepeda\nIndonesia punya\naturan ketat"
+//            val numberOfLines = OneMinuteCommandVideoBuilder.returnNumberOfEnterInText(text)
+//            Log.d("Lines","$numberOfLines")
         }
     }
 
@@ -97,14 +91,15 @@ class TemplateActivity : BaseActivity() {
                 "Puasa ini akan\nberbuah manis","PB ISSI akan siapkan\nbonus 1 milliar",
                 "Untuk atlet\npenyumbang\nmedali emas")
 
-        val commands = OneMinuteCommandVideoBuilder.withTotal(imageNames.size)
-                .generateInputStringArraysWithFilterComplexCommand(imageNames, null)
-                .generateStringBuilderScaleCommand("scale", "720")
-                .generateStringBuilderZoomPanCommand("zoom", "45", "180", "720x720")
-                .generateStringBuilderDrawTextBoxCommand("text", textString[0], textString, BASE_FONT_DIR + "Lato-Bold.ttf")
-                .generateCommandForConcat()
-                .generateOutput(outputName)
-                .buildString()
+//        val commands = OneMinuteCommandVideoBuilder().withTotal(imageNames.size)
+//                .withCategory("Bangga")
+//                .generateInputStringArraysWithFilterComplexCommand(imageNames, null)
+//                .generateStringBuilderScaleCommand("scale", "720")
+//                .generateStringBuilderZoomPanCommand("zoom", "45", "180", "720x720")
+//                .generateStringBuilderDrawTextBoxCommand("text", textString[0], textString, BASE_FONT_DIR + "Lato-Bold.ttf")
+//                .generateCommandForConcat()
+//                .generateOutput(outputName)
+//                .buildString()
 
         val command = arrayOf(
                 "-i", imageOpening,
@@ -235,18 +230,18 @@ class TemplateActivity : BaseActivity() {
                         "[text1][text2][text3][text4][text5][text6][text7][text8][text9][text10][text11]concat=n=11:v=1:a=0, " +
                         "format=yuv420p[v]", "-map", "[v]", outputName)
 
-        fFmpeg.execute(commands.toTypedArray(), object : ExecuteBinaryResponseHandler() {
-            override fun onSuccess(message: String?) {
-                mMaterialDialog?.dismiss()
-                Toast.makeText(this@TemplateActivity, "Good", Toast.LENGTH_SHORT).show()
-            }
-
-            override fun onFailure(message: String?) {
-                mMaterialDialog?.dismiss()
-                Log.e("Error", "$message")
-                Toast.makeText(this@TemplateActivity, "Ooops zoom in error", Toast.LENGTH_SHORT).show()
-            }
-        })
+//        fFmpeg.execute(commands.toTypedArray(), object : ExecuteBinaryResponseHandler() {
+//            override fun onSuccess(message: String?) {
+//                mMaterialDialog?.dismiss()
+//                Toast.makeText(this@TemplateActivity, "Good", Toast.LENGTH_SHORT).show()
+//            }
+//
+//            override fun onFailure(message: String?) {
+//                mMaterialDialog?.dismiss()
+//                Log.e("Error", "$message")
+//                Toast.makeText(this@TemplateActivity, "Ooops zoom in error", Toast.LENGTH_SHORT).show()
+//            }
+//        })
     }
 
     private fun addOpiniLogoAndText() {
