@@ -13,6 +13,8 @@ import com.afollestad.materialdialogs.Theme
 import com.bumptech.glide.Glide
 import com.gvm.demoffmpeg.slideitem.*
 import com.jakewharton.rxbinding2.widget.RxTextView
+import com.theartofdev.edmodo.cropper.CropImage
+import com.theartofdev.edmodo.cropper.CropImageView
 import io.reactivex.disposables.CompositeDisposable
 import kotlinx.android.synthetic.main.content_slideshow_item.*
 import nl.bravobit.ffmpeg.ExecuteBinaryResponseHandler
@@ -149,14 +151,17 @@ class SlideShowActivity : BaseActivity(), SlideItemListener, CategoryClickListen
             punchline2.text = currentSlideItem.punchLine2
         }, { Log.e("Error", "${it.cause}") }))
 
-        cardView.setOnClickListener { FileUtility.getImageFromGallery(this) }
+        cardView.setOnClickListener { invokeCropImageActivity() }
     }
 
-    override fun setProgressDialog() {
-        mMaterialDialogBuilder.content("Building slides. This will take a time...")
-        mMaterialDialogBuilder.progressIndeterminateStyle(true)
-        mMaterialDialogBuilder.progress(true, 100)
-        mMaterialDialog = mMaterialDialogBuilder.show()
+    private fun invokeCropImageActivity() {
+        CropImage.activity(null).setGuidelines(CropImageView.Guidelines.ON)
+                .setAllowRotation(true)
+                .setAllowCounterRotation(true)
+                .setAllowFlipping(true)
+                .setAspectRatio(1, 1)
+                .setActivityTitle("Crop Image")
+                .start(this)
     }
 
     private fun publishVideo() {
@@ -194,13 +199,14 @@ class SlideShowActivity : BaseActivity(), SlideItemListener, CategoryClickListen
         val models = mAdapter.mSlideItems
         val punchLine = mAdapter.mPunchLine
         val fontPath = BASE_FONT_DIR + "Lato-Bold.ttf"
+        val fontPathTitle = BASE_FONT_DIR + "Lato-Black.ttf"
         val outputName = BASE_OUTPUT_PATH + "_prototype_slide.mp4"
         val command1 = OneMinuteCommandVideoBuilder()
                 .withContext(this).loadModels(models).withCategory(mCategoryName!!)
                 .generateInputStringArraysWithFilterComplexCommand()
                 .generateStringBuilderScaleCommand("scale", "720")
                 .generateStringBuilderZoomPanCommand("zoom", "45", "180", "720x720")
-                .generateStringBuilderDrawTextBoxCommand("text", punchLine.punchLine1, punchLine.punchLine2, fontPath)
+                .generateStringBuilderDrawTextBoxCommand("text", punchLine.punchLine1, punchLine.punchLine2, fontPath, fontPathTitle)
                 .generateCommandForConcat()
                 .generateOutput(outputName)
                 .buildString()
@@ -290,9 +296,23 @@ class SlideShowActivity : BaseActivity(), SlideItemListener, CategoryClickListen
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        if (resultCode == Activity.RESULT_OK) {
-            if (requestCode == BaseActivity.REQ_CODE_IMAGE) {
-                val uri = data?.data
+//        if (resultCode == Activity.RESULT_OK) {
+//            if (requestCode == BaseActivity.REQ_CODE_IMAGE) {
+//                val uri = data?.data
+//                if (uri != null) {
+//                    val pathName = FileUtility.getPath(this, uri)
+//                    val currentSlideItem = mAdapter.getSlideItems(mCurrentPosition)
+//                    currentSlideItem.imagePath = pathName!!
+//                    mAdapter.notifyItemChanged(mCurrentPosition)
+//                    setPreviewImageAndText(currentSlideItem)
+//                }
+//            }
+//        }
+
+        if (requestCode == CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE) {
+            val result = CropImage.getActivityResult(data)
+            if (resultCode == Activity.RESULT_OK) {
+                val uri = result.uri
                 if (uri != null) {
                     val pathName = FileUtility.getPath(this, uri)
                     val currentSlideItem = mAdapter.getSlideItems(mCurrentPosition)
@@ -302,6 +322,13 @@ class SlideShowActivity : BaseActivity(), SlideItemListener, CategoryClickListen
                 }
             }
         }
+    }
+
+    override fun setProgressDialog() {
+        mMaterialDialogBuilder.content("Building slides. This will take a time...")
+        mMaterialDialogBuilder.progressIndeterminateStyle(true)
+        mMaterialDialogBuilder.progress(true, 100)
+        mMaterialDialog = mMaterialDialogBuilder.show()
     }
 
     override fun onDestroy() {

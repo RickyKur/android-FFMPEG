@@ -102,7 +102,7 @@ class OneMinuteCommandVideoBuilder {
     }
 
     /*input 0 text is for title*/
-    fun generateStringBuilderDrawTextBoxCommand(labelName: String, punchLine1: String, punchLine2: String, fontFile: String):
+    fun generateStringBuilderDrawTextBoxCommand(labelName: String, punchLine1: String, punchLine2: String, fontFile: String, fontFileTitle: String):
             OneMinuteCommandVideoBuilder {
         val title = mSlideModels[0].slideText.replace("\\\\", "\\\\\\\\\\\\\\\\").replace("'", "")
                 .replace("%", "persen").replace(":", "")
@@ -115,7 +115,7 @@ class OneMinuteCommandVideoBuilder {
         /*for title and cover page (page 0)*/
         builder.append("[${mPreviousLabelName}1]drawbox=y=${returnDrawBoxYPosition(title)}:color=black@0.5:width=iw:" +
                 "height=${returnDrawBoxHeight(title)}:t=fill, " +
-                "drawtext=fontfile=$fontFile:text='$title'" +
+                "drawtext=fontfile=$fontFileTitle:text='$title'" +
                 ":x=40:y=${returnDrawTextYPosition(title)}:fontsize=70:line_spacing=12.0:text_shaping=0:fontcolor=white," +
                 "drawbox=y=${returnDrawBoxYPositionForTitleSlide(title)}:color=${getColorCategoryForFFMPEG(mContext, mCategoryName)}:width=iw:height=45:t=fill," +
                 "drawbox=y=${returnDrawBoxYPositionForTitleSlide(title)}:color=0x00FFD8:width=164:height=45:t=fill," +
@@ -176,8 +176,8 @@ class OneMinuteCommandVideoBuilder {
     private fun generateZoomPanCommand(): String {
         val random = Random().nextInt(2)
         return when (random) {
-            0 -> "scale=8000:-1, zoompan=z=min(zoom+0.0015\\, 1.5):y=(ih/2)-(ih/zoom/2)"
-            else -> "zoompan=z=if(lte(zoom\\,1.0)\\,1.5\\,max(1.001\\,zoom - 0.0015))"
+            0 -> "scale=8000:-1, zoompan=z=min(zoom+0.0008\\, 1.5):y=(ih/2)-(ih/zoom/2)"
+            else -> "zoompan=z=if(lte(zoom\\,1.0)\\,1.3\\,max(1.001\\,zoom - 0.0015))"
         }
     }
 
@@ -276,7 +276,7 @@ class OneMinuteCommandVideoBuilder {
 
         private fun returnDrawTextYPosition(currentText: String): String {
             return when {
-                returnNumberOfEnterInText(currentText) == 3 -> "(h-220)"
+                returnNumberOfEnterInText(currentText) == 3 -> "(h-230)"
                 returnNumberOfEnterInText(currentText) == 2 -> "(h-160)"
                 else -> "(h-100)"
             }
