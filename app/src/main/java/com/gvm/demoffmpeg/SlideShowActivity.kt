@@ -70,7 +70,7 @@ class SlideShowActivity : BaseActivity(), SlideItemListener, CategoryClickListen
         setCategoryTextVisibility(position)
         setCategoryButtonVisibility(position)
         setTitleText(position, slideItem)
-        setPreviewImageAndText(position, slideItem)
+        setPreviewImageAndText(slideItem)
         setPunchLineItemVisibility(position)
     }
 
@@ -93,7 +93,7 @@ class SlideShowActivity : BaseActivity(), SlideItemListener, CategoryClickListen
         }
     }
 
-    private fun setPreviewImageAndText(position: Int, slideItem: SlideItemModel?) {
+    private fun setPreviewImageAndText(slideItem: SlideItemModel?) {
         if (slideItem != null && slideItem.imagePath.isNotEmpty()) {
             val uri = slideItem.imagePath
             image_preview.visibility = View.VISIBLE
@@ -153,7 +153,7 @@ class SlideShowActivity : BaseActivity(), SlideItemListener, CategoryClickListen
     }
 
     override fun setProgressDialog() {
-        mMaterialDialogBuilder.content("Please Wait..")
+        mMaterialDialogBuilder.content("Building slides. This will take a time...")
         mMaterialDialogBuilder.progressIndeterminateStyle(true)
         mMaterialDialogBuilder.progress(true, 100)
         mMaterialDialog = mMaterialDialogBuilder.show()
@@ -175,7 +175,7 @@ class SlideShowActivity : BaseActivity(), SlideItemListener, CategoryClickListen
 
     private fun validateInput(): Int {
         if (mCategoryName == null) return 0
-        if (mAdapter.mSlideItems.size < 4) {
+        if (mAdapter.mSlideItems.size < 2) {
             return 1
         } else {
             for (index in 0 until mAdapter.mSlideItems.size) {
@@ -199,33 +199,59 @@ class SlideShowActivity : BaseActivity(), SlideItemListener, CategoryClickListen
                 .withContext(this).loadModels(models).withCategory(mCategoryName!!)
                 .generateInputStringArraysWithFilterComplexCommand()
                 .generateStringBuilderScaleCommand("scale", "720")
-                .generateStringBuilderZoomPanCommand("zoom",  "45", "180", "720x720")
+                .generateStringBuilderZoomPanCommand("zoom", "45", "180", "720x720")
                 .generateStringBuilderDrawTextBoxCommand("text", punchLine.punchLine1, punchLine.punchLine2, fontPath)
                 .generateCommandForConcat()
                 .generateOutput(outputName)
                 .buildString()
         FileUtility.checkFileExists("_prototype_slide.mp4", BASE_OUTPUT_PATH)
         val ffmpeg = FFmpeg.getInstance(this)
-        ffmpeg.execute(command1.toTypedArray(), object: ExecuteBinaryResponseHandler() {
+        ffmpeg.execute(command1.toTypedArray(), object : ExecuteBinaryResponseHandler() {
             override fun onSuccess(message: String?) {
-                mMaterialDialog?.dismiss()
-                Toast.makeText(this@SlideShowActivity, "Done, bitch", Toast.LENGTH_SHORT).show()
+                mMaterialDialog?.setContent("Slides are done, now embedding images...please wait...")
+                generateSlideVideoWithLogoAndText()
             }
 
             override fun onFailure(message: String?) {
                 mMaterialDialog?.dismiss()
-                Log.e("Error","$message")
+                Log.e("Error", "$message")
                 Toast.makeText(this@SlideShowActivity, "Oops, error man", Toast.LENGTH_SHORT).show()
+            }
+
+            override fun onProgress(message: String?) {
+                Log.d("On Progress","$message")
             }
         })
     }
 
     private fun generateSlideVideoWithLogoAndText() {
+        val models = mAdapter.mSlideItems
+        val inputVideo = BaseActivity.BASE_OUTPUT_PATH + "_prototype_slide.mp4"
+        val outputName = BaseActivity.BASE_OUTPUT_PATH + "_prototype_one_minute.mp4"
+        val command = OneMinuteCommandVideoBuilder()
+                .withContext(this).loadModels(models)
+                .withCategory(mCategoryName!!)
+                .generateCommandForOverlayLogo(inputVideo, outputName)
+                .buildString()
+        FileUtility.checkFileExists("_prototype_one_minute.mp4", BaseActivity.BASE_OUTPUT_PATH)
+        val ffmpeg = FFmpeg.getInstance(this)
+        Log.d("FFMPEG","$command")
+        ffmpeg.execute(command.toTypedArray(), object : ExecuteBinaryResponseHandler() {
+            override fun onSuccess(message: String?) {
+                mMaterialDialog?.dismiss()
+                Toast.makeText(this@SlideShowActivity, "YEEEHHAAWW", Toast.LENGTH_SHORT).show()
+            }
 
-    }
+            override fun onFailure(message: String?) {
+                mMaterialDialog?.dismiss()
+                Log.e("Error", "$message")
+                Toast.makeText(this@SlideShowActivity, "Oops, error man", Toast.LENGTH_SHORT).show()
+            }
 
-    private fun generateSlideVideoWithSolidColorAtTheEnd() {
-
+            override fun onProgress(message: String?) {
+                Log.d("On Progress","$message")
+            }
+        })
     }
 
     private fun setTextCategory(view: TextView) {
@@ -272,7 +298,7 @@ class SlideShowActivity : BaseActivity(), SlideItemListener, CategoryClickListen
                     val currentSlideItem = mAdapter.getSlideItems(mCurrentPosition)
                     currentSlideItem.imagePath = pathName!!
                     mAdapter.notifyItemChanged(mCurrentPosition)
-                    setPreviewImageAndText(mCurrentPosition, currentSlideItem)
+                    setPreviewImageAndText(currentSlideItem)
                 }
             }
         }

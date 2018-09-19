@@ -256,7 +256,6 @@ class TemplateActivity : BaseActivity() {
                 "-i", imageLogo,
                 "-filter_complex",
                 "[1:v]scale=(iw*1.25):(ih*1.25)[scl1];" +
-//                "drawbox=x=130:y=0:color=0x0087EA:width=iw:height=40:t=fill," +
                 "[0:v][scl1]overlay=x=0:y=if(gte(t\\,41.5)\\,-200\\,0)," +
                 "drawtext=fontfile="+ BASE_FONT_DIR +"Lato-Black.ttf: text='\\  OH GITU!\\                                                                                                       .':fontcolor=white:fontsize=28:x=192:y=" +
                 "if(lte(t\\,3)\\,-th*2\\,if(lte(t\\,6)\\,min(12\\,(-th*2)+((t-3)*100))\\,max(-th*2\\,12-((t-6)*50)))):" +
@@ -287,7 +286,7 @@ class TemplateActivity : BaseActivity() {
                 "-i", inputVideo, /*[0:v]*/
 
                 "-f", "lavfi", "-i", "color=c=0x00FFD8:s=720x720", /*teal*/ /*[1:v]*/
-                "-f", "lavfi", "-i", "color=c=0x0087EA:s=720x720",/*blue*/ /*[2:v]*/
+                "-f", "lavfi", "-i", "color=c=0x0087EA:s=720x720",/*Change this color according to category*/ /*[2:v]*/
 
                 "-i", imageLogo, /*[3:v]*/
 

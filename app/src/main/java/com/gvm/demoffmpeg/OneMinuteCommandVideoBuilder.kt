@@ -59,7 +59,7 @@ class OneMinuteCommandVideoBuilder {
     }
 
     fun generateInputStringArraysWithFilterComplexCommand(): OneMinuteCommandVideoBuilder {
-        for (index in 1 .. mNumberOfInputs) {
+        for (index in 1..mNumberOfInputs) {
             mGeneratedString.add("-i")
             mGeneratedString.add(mSlideModels[index - 1].imagePath)
         }
@@ -74,7 +74,7 @@ class OneMinuteCommandVideoBuilder {
 
     fun generateStringBuilderScaleCommand(labelName: String, resolution: String): OneMinuteCommandVideoBuilder {
         val builder = StringBuilder()
-        for (index in 1 .. mNumberOfInputs) {
+        for (index in 1..mNumberOfInputs) {
             val videoIndex = index - 1
             builder.append("[$videoIndex:v]scale=$resolution:$resolution, setsar=1[$labelName$index]; ")
         }
@@ -86,15 +86,15 @@ class OneMinuteCommandVideoBuilder {
     fun generateStringBuilderZoomPanCommand(labelName: String, framePerSecond: String, durationInFrame: String, scale: String):
             OneMinuteCommandVideoBuilder {
         val builder = StringBuilder()
-        val defaultEndDuration = "405" /*Duration for last slide that contains punchline*/
+        val defaultEndDuration = "450" /*Duration for last slide that contains punchline*/
 
         builder.append("[${mPreviousLabelName}1]zoompan=z=1:fps=$framePerSecond:s=$scale:d=80[${labelName}1]; ")
-        for (index in 2 until  mNumberOfInputs) {
+        for (index in 2 until mNumberOfInputs) {
             /*give no zoom effect first*/
             builder.append("[$mPreviousLabelName$index]${generateZoomPanCommand()}:fps=$framePerSecond:s=$scale:d=$durationInFrame[$labelName$index]; ")
         }
         builder.append("[$mPreviousLabelName$mNumberOfInputs]${generateZoomPanCommand()}:fps=$framePerSecond:s=$scale:" +
-        "d=$defaultEndDuration[$labelName$mNumberOfInputs]; ")
+                "d=$defaultEndDuration[$labelName$mNumberOfInputs]; ")
 
         mFilterComplexString.append(builder.toString())
         mPreviousLabelName = labelName
@@ -104,7 +104,8 @@ class OneMinuteCommandVideoBuilder {
     /*input 0 text is for title*/
     fun generateStringBuilderDrawTextBoxCommand(labelName: String, punchLine1: String, punchLine2: String, fontFile: String):
             OneMinuteCommandVideoBuilder {
-        val title = mSlideModels[0].slideText
+        val title = mSlideModels[0].slideText.replace("\\\\", "\\\\\\\\\\\\\\\\").replace("'", "")
+                .replace("%", "persen").replace(":", "")
         val builder = StringBuilder()
         val slideSpeed = "2200"
         val fontSize = "63"
@@ -114,7 +115,7 @@ class OneMinuteCommandVideoBuilder {
         /*for title and cover page (page 0)*/
         builder.append("[${mPreviousLabelName}1]drawbox=y=${returnDrawBoxYPosition(title)}:color=black@0.5:width=iw:" +
                 "height=${returnDrawBoxHeight(title)}:t=fill, " +
-                "drawtext=fontfile=$fontFile:text='${mSlideModels[0].slideText}'" +
+                "drawtext=fontfile=$fontFile:text='$title'" +
                 ":x=40:y=${returnDrawTextYPosition(title)}:fontsize=70:line_spacing=12.0:text_shaping=0:fontcolor=white," +
                 "drawbox=y=${returnDrawBoxYPositionForTitleSlide(title)}:color=${getColorCategoryForFFMPEG(mContext, mCategoryName)}:width=iw:height=45:t=fill," +
                 "drawbox=y=${returnDrawBoxYPositionForTitleSlide(title)}:color=0x00FFD8:width=164:height=45:t=fill," +
@@ -124,18 +125,20 @@ class OneMinuteCommandVideoBuilder {
                 "y=${returnDrawTextYPositionForCategoryText(title)}[${labelName}1];")
 
         for (index in 2 until mNumberOfInputs) {
-            val text = mSlideModels[index - 1].slideText
+            val text = mSlideModels[index - 1].slideText.replace("\\\\", "\\\\\\\\\\\\\\\\").replace("'", "")
+                    .replace("%", "persen").replace(":", "")
             val drawTextXPosition = "if(lt(t\\,0.1)\\,-tw\\,min(40\\,-tw+($slideSpeed*(t-0.1))))"
 
             /*For slides page*/
             builder.append("[$mPreviousLabelName$index] drawbox=y=${returnDrawBoxYPosition(text)}:" +
-            "color=black@0.5:width=iw:height=${returnDrawBoxHeight(text)}:t=fill, " +
-            "drawtext=fontfile=$fontFile: text='$text':x=$drawTextXPosition:y=${returnDrawTextYPosition(text)}:fontsize=$fontSize:" +
-            "line_spacing=17.0:fontcolor=white:alpha=if(gte(t\\,7)\\,0\\, 1)[$labelName$index];")
+                    "color=black@0.5:width=iw:height=${returnDrawBoxHeight(text)}:t=fill, " +
+                    "drawtext=fontfile=$fontFile: text='$text':x=$drawTextXPosition:y=${returnDrawTextYPosition(text)}:fontsize=$fontSize:" +
+                    "line_spacing=17.0:fontcolor=white:alpha=if(gte(t\\,7)\\,0\\, 1)[$labelName$index];")
         }
         /*For closing page*/
         val lastIndex = mNumberOfInputs - 1
-        val lastText = mSlideModels[lastIndex].slideText
+        val lastText = mSlideModels[lastIndex].slideText.replace("\\\\", "\\\\\\\\\\\\\\\\").replace("'", "")
+                .replace("%", "persen").replace(":", "")
         builder.append("[$mPreviousLabelName$mNumberOfInputs]" +
 
                 "drawbox=enable=between(t\\,0\\,3.5):y=${returnDrawBoxYPosition(lastText)}:color=black@0.5:" +
@@ -154,12 +157,12 @@ class OneMinuteCommandVideoBuilder {
                 "alpha=if(gte(t\\,5)\\,min(1\\,(t-5))\\,0):box=1:boxcolor=black:boxborderw=16," +
 
                 "drawtext=fontfile=$fontFile:text='1MENIT':" + /*1Menit*/
-                "x=if(gte(t\\,5)\\,max((-78)+(w-tw)/2\\,((75)+(w-tw)/2) - ((t-5)*200))\\,(75)+(w-tw)/2):" +
+                "x=if(gte(t\\,5)\\,max((-73)+(w-tw)/2\\,((75)+(w-tw)/2) - ((t-5)*200))\\,(75)+(w-tw)/2):" +
                 "alpha=if(gte(t\\,5)\\,min(1\\,(t-5))\\,0):y=h-210:fontcolor=black:fontsize=30:" +
                 "box=1:boxcolor=0x00FFD8:boxborderw=14," +
 
                 "drawtext=fontfile=$fontFile:text='${mCategoryName.toUpperCase()}':" +
-                "x=if(gte(t\\,5)\\,min((74)+(w-tw)/2\\,((-78)+(w-tw)/2) + ((t-5)*200))\\,(-78)+(w-tw)/2):" +
+                "x=if(gte(t\\,5)\\,min((w/2)+5\\,((-73)+(w-tw)/2) + ((t-5)*200))\\,(-73)+(w-tw)/2):" +
                 "alpha=if(gte(t\\,5)\\,min(1\\,(t-5))\\,0):y=h-210:fontcolor=${getTextColorCategoryForFFMPEG(mContext, mCategoryName)}:fontsize=30:" +
                 "box=1:boxcolor=${getColorCategoryForFFMPEG(mContext, mCategoryName)}:boxborderw=14" +
 
@@ -180,7 +183,7 @@ class OneMinuteCommandVideoBuilder {
 
     fun generateCommandForConcat(): OneMinuteCommandVideoBuilder {
         val builder = StringBuilder()
-        for (index in 1 .. mNumberOfInputs) {
+        for (index in 1..mNumberOfInputs) {
             builder.append("[$mPreviousLabelName$index]")
         }
         builder.append("concat=n=$mNumberOfInputs:v=1:a=0, format=yuv420p[video]")
@@ -195,6 +198,38 @@ class OneMinuteCommandVideoBuilder {
         mGeneratedString.add("[video]")
         mGeneratedString.add(outputName)
 
+        return this
+    }
+
+    fun generateCommandForOverlayLogo(inputVideoName: String, outputName: String): OneMinuteCommandVideoBuilder {
+        val imageLogo = BaseActivity.BASE_TEMPLATE_DIR + "logo.png"
+        val imageLogoBig = BaseActivity.BASE_TEMPLATE_DIR + "logo2.png"
+        val durationLogoDisappear = (((mNumberOfInputs - 1) * 4) + 1.6).toString()
+        val durationOfSlideTransition = (((mNumberOfInputs - 1) * 4) + 6).toString()
+
+        mGeneratedString.add("-i"); mGeneratedString.add(inputVideoName)
+        mGeneratedString.add("-i"); mGeneratedString.add(imageLogo)
+
+        mGeneratedString.add("-f"); mGeneratedString.add("lavfi"); mGeneratedString.add("-i")
+        mGeneratedString.add("color=c=0x00FFD8:s=720x720")
+        mGeneratedString.add("-f"); mGeneratedString.add("lavfi"); mGeneratedString.add("-i")
+        mGeneratedString.add("color=c=${getColorCategoryForFFMPEG(mContext, mCategoryName)}:s=720x720")
+
+        mGeneratedString.add("-i"); mGeneratedString.add(imageLogoBig)
+        mGeneratedString.add("-filter_complex")
+
+        mFilterComplexString.append("[1:v]scale=(iw*1.25):(ih*1.25)[scl1];" +
+                "[0:v][scl1]overlay=x=0:y=if(gte(t\\,$durationLogoDisappear)\\,-200\\,0)," +
+                "drawtext=fontfile=" + BaseActivity.BASE_FONT_DIR + "Lato-Black.ttf: text='\\  ${mCategoryName.toUpperCase()}\\                                                                                                       .':fontcolor=" +
+                "${getTextColorCategoryForFFMPEG(mContext, mCategoryName)}:fontsize=28:x=192:y=" +
+                "if(lte(t\\,3)\\,-th*2\\,if(lte(t\\,6)\\,min(12\\,(-th*2)+((t-3)*100))\\,max(-th*2\\,12-((t-6)*50)))):" +
+                "box=1:boxcolor=${getColorCategoryForFFMPEG(mContext, mCategoryName)}:boxborderw=17[logo];" +
+                "[4:v]scale=(iw*1.2):(ih*1.2)[scaledImage];" +
+                "[2:v][scaledImage]overlay=x=(W-w)/2:y=(H-h)/2[image1];" +
+                "[logo][image1]overlay=enable=gt(t\\,$durationOfSlideTransition):shortest=1, format=yuv420p[ovr1];" +
+                "[ovr1][3:v]overlay=shortest=1:y=(t-$durationOfSlideTransition)*2100, format=yuv420p")
+        mGeneratedString.add(mFilterComplexString.toString())
+        mGeneratedString.add(outputName)
         return this
     }
 
@@ -258,6 +293,20 @@ class OneMinuteCommandVideoBuilder {
                 context.resources.getString(R.string.string_aha) -> ContextCompat.getColor(context, R.color.color_aha)
                 context.resources.getString(R.string.string_politik) -> ContextCompat.getColor(context, R.color.color_politik)
                 else -> 0
+            }
+        }
+
+        fun returnMarginForCategoryText(context: Context, categoryName: String): String {
+            return when (categoryName) {
+                context.resources.getString(R.string.string_inspiratif) -> ""
+                context.resources.getString(R.string.string_kelakuan) -> ""
+                context.resources.getString(R.string.string_ohgitu) -> ""
+                context.resources.getString(R.string.string_bangga) -> ""
+                context.resources.getString(R.string.string_semesta) -> ""
+                context.resources.getString(R.string.string_kisah) -> ""
+                context.resources.getString(R.string.string_aha) -> ""
+                context.resources.getString(R.string.string_politik) -> ""
+                else -> ""
             }
         }
 
