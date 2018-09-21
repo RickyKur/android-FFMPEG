@@ -31,11 +31,13 @@ def SUPPORT_LIBRARY_VERSION = '27.1.1'
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation"org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation "com.android.support:appcompat-v7:$SUPPORT_LIBRARY_VERSION"
     implementation("com.android.support:support-v4:$SUPPORT_LIBRARY_VERSION") {
         force = true
     }
+
+    implementation 'online.devliving:passcodeview:1.0.3'
 
     implementation 'de.hdodenhof:circleimageview:2.0.0'
     implementation 'com.jakewharton.rxbinding2:rxbinding:2.0.0'
@@ -47,6 +49,7 @@ dependencies {
     implementation 'nl.bravobit:android-ffmpeg:1.1.5'
     implementation 'com.afollestad.material-dialogs:core:0.9.6.0'
 
+    //noinspection GradleDynamicVersion
     implementation 'com.theartofdev.edmodo:android-image-cropper:2.7.+'
 
     implementation group: 'io.reactivex.rxjava2', name: 'rxjava', version: '2.1.16'

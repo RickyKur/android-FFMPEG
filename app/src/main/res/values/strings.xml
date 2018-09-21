@@ -10,4 +10,9 @@
     <string name="string_politik">Politik</string>
     <string name="image">image</string>
     <string name="_1menit">1MENIT</string>
+    <string name="publish_text">Are you sure you want to publish the slideshow?</string>
+    <string name="publish_yes">YES, publish it</string>
+    <string name="cancel">Cancel</string>
+    <string name="enter_passcode">Enter PassCode</string>
+    <string name="publish_string">Sit back and relax for a few minutes while we\'re publishing the slideshow...</string>
 </resources>

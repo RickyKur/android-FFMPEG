@@ -172,8 +172,7 @@ class SlideShowActivity : BaseActivity(), SlideItemListener, CategoryClickListen
             2 -> Toast.makeText(this, "Make sure you input the image for each slides", Toast.LENGTH_SHORT).show()
             3 -> Toast.makeText(this, "Please input punchline", Toast.LENGTH_SHORT).show()
             200 -> {
-                setProgressDialog()
-                generateSlideVideo()
+                mWindow.showPassCodeWindowView(::generateSlideVideo)
             }
         }
     }
@@ -214,14 +213,12 @@ class SlideShowActivity : BaseActivity(), SlideItemListener, CategoryClickListen
         val ffmpeg = FFmpeg.getInstance(this)
         ffmpeg.execute(command1.toTypedArray(), object : ExecuteBinaryResponseHandler() {
             override fun onSuccess(message: String?) {
-                mMaterialDialog?.setContent("Slides are done, now embedding images...please wait...")
                 generateSlideVideoWithLogoAndText()
             }
 
             override fun onFailure(message: String?) {
-                mMaterialDialog?.dismiss()
                 Log.e("Error", "$message")
-                Toast.makeText(this@SlideShowActivity, "Oops, error man", Toast.LENGTH_SHORT).show()
+                mWindow.dismissPassCodeView()
             }
 
             override fun onProgress(message: String?) {
@@ -244,14 +241,12 @@ class SlideShowActivity : BaseActivity(), SlideItemListener, CategoryClickListen
         Log.d("FFMPEG","$command")
         ffmpeg.execute(command.toTypedArray(), object : ExecuteBinaryResponseHandler() {
             override fun onSuccess(message: String?) {
-                mMaterialDialog?.dismiss()
-                Toast.makeText(this@SlideShowActivity, "YEEEHHAAWW", Toast.LENGTH_SHORT).show()
+                mWindow.showSuccessViewLoading()
             }
 
             override fun onFailure(message: String?) {
-                mMaterialDialog?.dismiss()
                 Log.e("Error", "$message")
-                Toast.makeText(this@SlideShowActivity, "Oops, error man", Toast.LENGTH_SHORT).show()
+                mWindow.dismissPassCodeView()
             }
 
             override fun onProgress(message: String?) {
@@ -296,19 +291,6 @@ class SlideShowActivity : BaseActivity(), SlideItemListener, CategoryClickListen
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-//        if (resultCode == Activity.RESULT_OK) {
-//            if (requestCode == BaseActivity.REQ_CODE_IMAGE) {
-//                val uri = data?.data
-//                if (uri != null) {
-//                    val pathName = FileUtility.getPath(this, uri)
-//                    val currentSlideItem = mAdapter.getSlideItems(mCurrentPosition)
-//                    currentSlideItem.imagePath = pathName!!
-//                    mAdapter.notifyItemChanged(mCurrentPosition)
-//                    setPreviewImageAndText(currentSlideItem)
-//                }
-//            }
-//        }
-
         if (requestCode == CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE) {
             val result = CropImage.getActivityResult(data)
             if (resultCode == Activity.RESULT_OK) {

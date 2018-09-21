@@ -157,12 +157,12 @@ class OneMinuteCommandVideoBuilder {
                 "alpha=if(gte(t\\,5)\\,min(1\\,(t-5))\\,0):box=1:boxcolor=black:boxborderw=16," +
 
                 "drawtext=fontfile=$fontFile:text='1MENIT':" + /*1Menit*/
-                "x=if(gte(t\\,5)\\,max((-73)+(w-tw)/2\\,((75)+(w-tw)/2) - ((t-5)*200))\\,(75)+(w-tw)/2):" +
+                "x=if(gte(t\\,5)\\,max((-73${returnMarginForCategoryText(mContext, mCategoryName)})+(w-tw)/2\\,((75)+(w-tw)/2) - ((t-5)*200))\\,(75)+(w-tw)/2):" +
                 "alpha=if(gte(t\\,5)\\,min(1\\,(t-5))\\,0):y=h-210:fontcolor=black:fontsize=30:" +
                 "box=1:boxcolor=0x00FFD8:boxborderw=14," +
 
                 "drawtext=fontfile=$fontFile:text='${mCategoryName.toUpperCase()}':" +
-                "x=if(gte(t\\,5)\\,min((w/2)+5\\,((-73)+(w-tw)/2) + ((t-5)*200))\\,(-73)+(w-tw)/2):" +
+                "x=if(gte(t\\,5)\\,min((w/2)+10${returnMarginForCategoryText(mContext, mCategoryName)}\\,((-73)+(w-tw)/2) + ((t-5)*200))\\,(-73)+(w-tw)/2):" +
                 "alpha=if(gte(t\\,5)\\,min(1\\,(t-5))\\,0):y=h-210:fontcolor=${getTextColorCategoryForFFMPEG(mContext, mCategoryName)}:fontsize=30:" +
                 "box=1:boxcolor=${getColorCategoryForFFMPEG(mContext, mCategoryName)}:boxborderw=14" +
 
@@ -204,6 +204,12 @@ class OneMinuteCommandVideoBuilder {
     fun generateCommandForOverlayLogo(inputVideoName: String, outputName: String): OneMinuteCommandVideoBuilder {
         val imageLogo = BaseActivity.BASE_TEMPLATE_DIR + "logo.png"
         val imageLogoBig = BaseActivity.BASE_TEMPLATE_DIR + "logo2.png"
+        val imageFb = ""
+        val imageIG = ""
+        val imageTwitter = ""
+        val imageYoutube = ""
+        val imageWhatsapp = ""
+        val imageLine = ""
         val durationLogoDisappear = (((mNumberOfInputs - 1) * 4) + 1.6).toString()
         val durationOfSlideTransition = (((mNumberOfInputs - 1) * 4) + 6).toString()
 
@@ -215,7 +221,15 @@ class OneMinuteCommandVideoBuilder {
         mGeneratedString.add("-f"); mGeneratedString.add("lavfi"); mGeneratedString.add("-i")
         mGeneratedString.add("color=c=${getColorCategoryForFFMPEG(mContext, mCategoryName)}:s=720x720")
 
-        mGeneratedString.add("-i"); mGeneratedString.add(imageLogoBig)
+        mGeneratedString.add("-i"); mGeneratedString.add(imageLogoBig) /*[4:v]*/
+
+//        mGeneratedString.add("-i"); mGeneratedString.add(imageFb) /*[5:v]*/
+//        mGeneratedString.add("-i"); mGeneratedString.add(imageIG) /*[6:v]*/
+//        mGeneratedString.add("-i"); mGeneratedString.add(imageTwitter) /*[7:v]*/
+//        mGeneratedString.add("-i"); mGeneratedString.add(imageYoutube) /*[8:v]*/
+//        mGeneratedString.add("-i"); mGeneratedString.add(imageWhatsapp) /*[9:v]*/
+//        mGeneratedString.add("-i"); mGeneratedString.add(imageLine) /*[10:v]*/
+//
         mGeneratedString.add("-filter_complex")
 
         mFilterComplexString.append("[1:v]scale=(iw*1.25):(ih*1.25)[scl1];" +
@@ -298,15 +312,15 @@ class OneMinuteCommandVideoBuilder {
 
         fun returnMarginForCategoryText(context: Context, categoryName: String): String {
             return when (categoryName) {
-                context.resources.getString(R.string.string_inspiratif) -> ""
-                context.resources.getString(R.string.string_kelakuan) -> ""
-                context.resources.getString(R.string.string_ohgitu) -> ""
-                context.resources.getString(R.string.string_bangga) -> ""
-                context.resources.getString(R.string.string_semesta) -> ""
-                context.resources.getString(R.string.string_kisah) -> ""
-                context.resources.getString(R.string.string_aha) -> ""
-                context.resources.getString(R.string.string_politik) -> ""
-                else -> ""
+                context.resources.getString(R.string.string_inspiratif) -> "-5"
+                context.resources.getString(R.string.string_kelakuan) -> "-1"
+                context.resources.getString(R.string.string_ohgitu) -> "+0"
+                context.resources.getString(R.string.string_bangga) -> "+0"
+                context.resources.getString(R.string.string_semesta) -> "-1"
+                context.resources.getString(R.string.string_kisah) -> "+5"
+                context.resources.getString(R.string.string_aha) -> "+10"
+                context.resources.getString(R.string.string_politik) -> "+2"
+                else -> "+0"
             }
         }
 
