@@ -203,32 +203,33 @@ class OneMinuteCommandVideoBuilder {
 
     fun generateCommandForOverlayLogo(inputVideoName: String, outputName: String): OneMinuteCommandVideoBuilder {
         val imageLogo = BaseActivity.BASE_TEMPLATE_DIR + "logo.png"
-        val imageLogoBig = BaseActivity.BASE_TEMPLATE_DIR + "logo2.png"
-        val imageFb = ""
-        val imageIG = ""
-        val imageTwitter = ""
-        val imageYoutube = ""
-        val imageWhatsapp = ""
-        val imageLine = ""
+        val imageLogoBig = BaseActivity.BASE_TEMPLATE_DIR + "logo_black.png"
+        val imageFb = BaseActivity.BASE_TEMPLATE_DIR + "fb.png"
+        val imageIG = BaseActivity.BASE_TEMPLATE_DIR + "ig.png"
+        val imageTwitter = BaseActivity.BASE_TEMPLATE_DIR + "tw.png"
+        val imageYoutube = BaseActivity.BASE_TEMPLATE_DIR + "yt.png"
+        val imageWhatsapp = BaseActivity.BASE_TEMPLATE_DIR + "wa.png"
+        val imageLine = BaseActivity.BASE_TEMPLATE_DIR + "line.png"
         val durationLogoDisappear = (((mNumberOfInputs - 1) * 4) + 1.6).toString()
         val durationOfSlideTransition = (((mNumberOfInputs - 1) * 4) + 6).toString()
 
-        mGeneratedString.add("-i"); mGeneratedString.add(inputVideoName)
-        mGeneratedString.add("-i"); mGeneratedString.add(imageLogo)
+        val imageSocMedYPosition = "(H-h)-100"
+
+        mGeneratedString.add("-i"); mGeneratedString.add(inputVideoName) /*[0:v]*/
+        mGeneratedString.add("-i"); mGeneratedString.add(imageLogo) /*[1:v]*/
 
         mGeneratedString.add("-f"); mGeneratedString.add("lavfi"); mGeneratedString.add("-i")
-        mGeneratedString.add("color=c=0x00FFD8:s=720x720")
+        mGeneratedString.add("color=c=0x00FFD8:s=720x720") /*[2:v] color teal*/
         mGeneratedString.add("-f"); mGeneratedString.add("lavfi"); mGeneratedString.add("-i")
-        mGeneratedString.add("color=c=${getColorCategoryForFFMPEG(mContext, mCategoryName)}:s=720x720")
-
+        mGeneratedString.add("color=c=${getColorCategoryForFFMPEG(mContext, mCategoryName)}:s=720x720") /*[3:v]*/
         mGeneratedString.add("-i"); mGeneratedString.add(imageLogoBig) /*[4:v]*/
 
-//        mGeneratedString.add("-i"); mGeneratedString.add(imageFb) /*[5:v]*/
-//        mGeneratedString.add("-i"); mGeneratedString.add(imageIG) /*[6:v]*/
-//        mGeneratedString.add("-i"); mGeneratedString.add(imageTwitter) /*[7:v]*/
-//        mGeneratedString.add("-i"); mGeneratedString.add(imageYoutube) /*[8:v]*/
-//        mGeneratedString.add("-i"); mGeneratedString.add(imageWhatsapp) /*[9:v]*/
-//        mGeneratedString.add("-i"); mGeneratedString.add(imageLine) /*[10:v]*/
+        mGeneratedString.add("-i"); mGeneratedString.add(imageFb) /*[5:v]*/
+        mGeneratedString.add("-i"); mGeneratedString.add(imageIG) /*[6:v]*/
+        mGeneratedString.add("-i"); mGeneratedString.add(imageTwitter) /*[7:v]*/
+        mGeneratedString.add("-i"); mGeneratedString.add(imageYoutube) /*[8:v]*/
+        mGeneratedString.add("-i"); mGeneratedString.add(imageWhatsapp) /*[9:v]*/
+        mGeneratedString.add("-i"); mGeneratedString.add(imageLine) /*[10:v]*/
 //
         mGeneratedString.add("-filter_complex")
 
@@ -239,8 +240,16 @@ class OneMinuteCommandVideoBuilder {
                 "if(lte(t\\,3)\\,-th*2\\,if(lte(t\\,6)\\,min(12\\,(-th*2)+((t-3)*100))\\,max(-th*2\\,12-((t-6)*50)))):" +
                 "box=1:boxcolor=${getColorCategoryForFFMPEG(mContext, mCategoryName)}:boxborderw=17[logo];" +
                 "[4:v]scale=(iw*1.2):(ih*1.2)[scaledImage];" +
-                "[2:v][scaledImage]overlay=x=(W-w)/2:y=(H-h)/2[image1];" +
-                "[logo][image1]overlay=enable=gt(t\\,$durationOfSlideTransition):shortest=1, format=yuv420p[ovr1];" +
+                "[2:v][scaledImage]overlay=x=(W-w)/2:y=(H-h)/2[imageLogoOpini];" +
+
+                "[imageLogoOpini][5:v]overlay=x=140:y=$imageSocMedYPosition[imageFB];" +
+                "[imageFB][6:v]overlay=x=220:y=$imageSocMedYPosition[imageIG];" +
+                "[imageIG][7:v]overlay=x=300:y=$imageSocMedYPosition[imageTW];" +
+                "[imageTW][8:v]overlay=x=380:y=$imageSocMedYPosition[imageYT];" +
+                "[imageYT][9:v]overlay=x=460:y=$imageSocMedYPosition[imageWA];" +
+                "[imageWA][10:v]overlay=x=540:y=$imageSocMedYPosition[imageLN];" +
+
+                "[logo][imageLN]overlay=enable=gt(t\\,$durationOfSlideTransition):shortest=1, format=yuv420p[ovr1];" +
                 "[ovr1][3:v]overlay=shortest=1:y=(t-$durationOfSlideTransition)*2100, format=yuv420p")
         mGeneratedString.add(mFilterComplexString.toString())
         mGeneratedString.add(outputName)
