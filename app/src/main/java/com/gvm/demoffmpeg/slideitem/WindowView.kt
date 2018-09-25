@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.PixelFormat
 import android.graphics.drawable.AnimationDrawable
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -14,7 +15,6 @@ import com.gvm.demoffmpeg.SlideShowActivity
 import kotlinx.android.synthetic.main.card_category_item.view.*
 import kotlinx.android.synthetic.main.view_passcode_view.view.*
 import kotlinx.android.synthetic.main.view_window_categories.view.*
-import kotlinx.android.synthetic.main.view_window_publish_confirmation.view.*
 
 /**
  * Brought to you by rickykurniawan on 06/09/18.
@@ -27,6 +27,8 @@ class WindowView(private val mContext: Context) {
     private var mCategoryView: View? = null
     private var mPassCodeView: View? = null
 
+    var mDurationProgress: Int = 0
+
     private val windowDefaultLayoutParams: WindowManager.LayoutParams
         get() {
             val params = WindowManager.LayoutParams()
@@ -38,24 +40,10 @@ class WindowView(private val mContext: Context) {
             return params
         }
 
-    fun showPublishConfirmationWindow(yesConfirmation: () -> Unit) {
-        val params = windowDefaultLayoutParams
-        val inflateView = LayoutInflater.from(mContext).inflate(R.layout.view_window_publish_confirmation, null)
-        val publish = inflateView.card_publish
-        val cancel = inflateView.card_cancel
-
-        publish.setOnClickListener {
-            yesConfirmation()
-            mWindow?.removeView(inflateView)
-        }
-        cancel.setOnClickListener { mWindow?.removeView(inflateView) }
-
-        mWindow?.addView(inflateView, params)
-    }
-
     fun showPassCodeWindowView(generateVideo: () -> Unit) {
         val params = windowDefaultLayoutParams
         if (mPassCodeView != null) {
+            mPassCodeView!!.passcode_view.clearText()
             mWindow?.addView(mPassCodeView, params)
         } else {
             val inflateView = LayoutInflater.from(mContext).inflate(R.layout.view_passcode_view, null)
@@ -125,6 +113,14 @@ class WindowView(private val mContext: Context) {
         kotlin.run {
             animationDrawable?.start()
         }
+    }
+
+    @SuppressLint("SetTextI18n")
+    fun updateProgressBar(currentProgress: Int) {
+        Log.d("Current Progress", currentProgress.toString())
+        val progress = (currentProgress * 100) / mDurationProgress
+        mPassCodeView!!.progress_linear.progress = progress
+        mPassCodeView!!.progress_percentage.text = "$progress%"
     }
 
     fun showSuccessViewLoading() {

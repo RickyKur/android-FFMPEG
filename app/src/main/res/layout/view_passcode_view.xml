@@ -74,13 +74,26 @@
             android:textSize="24sp" />
 
         <ProgressBar
+            android:id="@+id/progress_linear"
             style="@style/Widget.AppCompat.ProgressBar.Horizontal"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="8dp"
             android:layout_marginLeft="30dp"
             android:layout_marginRight="30dp"
             android:layout_marginTop="15dp"
-            android:indeterminate="true" />
+            android:indeterminate="false"
+            android:progressDrawable="@drawable/progress_bg" />
+
+        <TextView
+            android:id="@+id/progress_percentage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginTop="10dp"
+            android:gravity="center"
+            android:textColor="@color/white"
+            android:textSize="18sp"
+            android:textStyle="bold" />
 
 
     </LinearLayout>
@@ -118,14 +131,14 @@
 
 
     <ImageView
-        android:visibility="visible"
         android:id="@+id/close"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="right"
         android:contentDescription="@string/image"
         android:padding="25dp"
-        android:src="@mipmap/close_cat" />
+        android:src="@mipmap/close_cat"
+        android:visibility="visible" />
 
 
 </FrameLayout>

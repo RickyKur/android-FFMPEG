@@ -27,6 +27,11 @@ class OneMinuteCommandVideoBuilder {
     val BASE_TEMPLATE_DIR = "$mBasePath/templateDemo2/"
     val BASE_OUTPUT_PATH = "$mBasePath/output/"
 
+    var mTotalDuration: Int = 0 /*Accepts total number of slides*/
+        set(value) {
+            val duration = 80 + ((value - 2) * 180) + 405
+            field = duration
+        }
 
     /**
      * Call clear first just to be safe
@@ -304,6 +309,11 @@ class OneMinuteCommandVideoBuilder {
                 else -> "(h-100)"
             }
         }
+
+        /**
+         * Get duration, accepts total slides array
+         */
+        fun getTotalDurationInFrameForVideo(size: Int): Int = 80 + ((size - 2) * 180 ) + 450
 
         fun getColorCategory(context: Context, categoryName: String): Int {
             return when (categoryName) {

@@ -172,6 +172,7 @@ class SlideShowActivity : BaseActivity(), SlideItemListener, CategoryClickListen
             2 -> Toast.makeText(this, "Make sure you input the image for each slides", Toast.LENGTH_SHORT).show()
             3 -> Toast.makeText(this, "Please input punchline", Toast.LENGTH_SHORT).show()
             200 -> {
+                mWindow.mDurationProgress = OneMinuteCommandVideoBuilder.getTotalDurationInFrameForVideo(mAdapter.mSlideItems.size) * 2
                 mWindow.showPassCodeWindowView(::generateSlideVideo)
             }
         }
@@ -222,7 +223,13 @@ class SlideShowActivity : BaseActivity(), SlideItemListener, CategoryClickListen
             }
 
             override fun onProgress(message: String?) {
-                Log.d("On Progress","$message")
+                val index: Int = message?.indexOf("fps=")!!
+                if (index > -1) {
+                    val substringIndex = message.substring(0, index)
+                    val replaceEmptyString = substringIndex.replace(" ", "")
+                    val frame = replaceEmptyString.substring(replaceEmptyString.lastIndexOf("=") + 1)
+                    mWindow.updateProgressBar(frame.toInt())
+                }
             }
         })
     }
@@ -238,7 +245,7 @@ class SlideShowActivity : BaseActivity(), SlideItemListener, CategoryClickListen
                 .buildString()
         FileUtility.checkFileExists("_prototype_one_minute.mp4", BaseActivity.BASE_OUTPUT_PATH)
         val ffmpeg = FFmpeg.getInstance(this)
-        Log.d("FFMPEG","$command")
+        Log.d("FFMPEG", "$command")
         ffmpeg.execute(command.toTypedArray(), object : ExecuteBinaryResponseHandler() {
             override fun onSuccess(message: String?) {
                 mWindow.showSuccessViewLoading()
@@ -250,7 +257,14 @@ class SlideShowActivity : BaseActivity(), SlideItemListener, CategoryClickListen
             }
 
             override fun onProgress(message: String?) {
-                Log.d("On Progress","$message")
+                val index: Int = message?.indexOf("fps=")!!
+                if (index > -1) {
+                    val substringIndex = message.substring(0, index)
+                    val replaceEmptyString = substringIndex.replace(" ", "")
+                    val frame = replaceEmptyString.substring(replaceEmptyString.lastIndexOf("=") + 1)
+                    val totalDuration = OneMinuteCommandVideoBuilder.getTotalDurationInFrameForVideo(mAdapter.mSlideItems.size)
+                    mWindow.updateProgressBar(totalDuration + frame.toInt())
+                }
             }
         })
     }
