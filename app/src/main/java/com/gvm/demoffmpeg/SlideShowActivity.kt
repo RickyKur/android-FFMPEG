@@ -8,23 +8,29 @@ import android.util.Log
 import android.view.View
 import android.widget.TextView
 import android.widget.Toast
-import com.afollestad.materialdialogs.MaterialDialog
-import com.afollestad.materialdialogs.Theme
 import com.bumptech.glide.Glide
 import com.gvm.demoffmpeg.slideitem.*
 import com.jakewharton.rxbinding2.widget.RxTextView
 import com.theartofdev.edmodo.cropper.CropImage
 import com.theartofdev.edmodo.cropper.CropImageView
+import io.reactivex.Single
+import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.content_slideshow_item.*
 import nl.bravobit.ffmpeg.ExecuteBinaryResponseHandler
 import nl.bravobit.ffmpeg.FFmpeg
+import java.io.File
 
 /**
  * Brought to you by rickykurniawan on 04/09/18.
  */
 class SlideShowActivity : BaseActivity(), SlideItemListener, CategoryClickListener {
 
+    private val mSingleObservable = Single.fromCallable {
+        FileUtility.copyDirOrFileFromAsset(applicationContext, "fonts", BASE_FONT_DIR)
+        FileUtility.copyDirOrFileFromAsset(applicationContext, "template", BASE_TEMPLATE_DIR)
+    }
     private val mAdapter = SlideItemAdapter(this)
     private var mCurrentPosition = 0
     private lateinit var mWindow: WindowView
@@ -34,6 +40,7 @@ class SlideShowActivity : BaseActivity(), SlideItemListener, CategoryClickListen
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_slideshow_create)
+        createNecessaryFile()
         initMaterialDialog()
         setFontType()
         setAdapter()
@@ -42,11 +49,29 @@ class SlideShowActivity : BaseActivity(), SlideItemListener, CategoryClickListen
         initViews(0, null)
     }
 
+    private fun createNecessaryFile() {
+        checkBasePath()
+        mCompositeDisposable.add(mSingleObservable.subscribeOn(Schedulers.newThread()).observeOn(AndroidSchedulers.mainThread()).subscribe({
+            Log.e("Copy asset folder","")
+        }, { err ->
+            Log.e("Observable error", "The error is : $err")
+        }))
+    }
+
+    private fun checkBasePath() {
+        val file = File(mBasePath)
+        if (!file.exists()) {
+            Log.e("CHECKBASEPATH", "File does not exist, creating the directory needed")
+            file.mkdirs()
+        }
+        val fileOutput = File(BASE_OUTPUT_PATH)
+        if (!fileOutput.exists()) {
+            fileOutput.mkdirs()
+        }
+    }
+
     private fun initMaterialDialog() {
         mWindow = WindowView(this)
-        mMaterialDialogBuilder = MaterialDialog.Builder(this)
-                .cancelable(false)
-                .theme(Theme.LIGHT)
     }
 
     private fun setFontType() {
@@ -318,13 +343,6 @@ class SlideShowActivity : BaseActivity(), SlideItemListener, CategoryClickListen
                 }
             }
         }
-    }
-
-    override fun setProgressDialog() {
-        mMaterialDialogBuilder.content("Building slides. This will take a time...")
-        mMaterialDialogBuilder.progressIndeterminateStyle(true)
-        mMaterialDialogBuilder.progress(true, 100)
-        mMaterialDialog = mMaterialDialogBuilder.show()
     }
 
     override fun onDestroy() {

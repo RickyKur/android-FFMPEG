@@ -57,10 +57,10 @@ class MainActivity : BaseActivity() {
     }
 
     private fun setProgress() {
-        mMaterialDialogBuilder.content("Transporting assets file to sdcard, please wait")
-        mMaterialDialogBuilder.progressIndeterminateStyle(true)
-        mMaterialDialogBuilder.progress(false, 250)
-        mMaterialDialog = mMaterialDialogBuilder.show()
+        mMaterialDialogBuilder?.content("Transporting assets file to sdcard, please wait")
+        mMaterialDialogBuilder?.progressIndeterminateStyle(true)
+        mMaterialDialogBuilder?.progress(false, 250)
+        mMaterialDialog = mMaterialDialogBuilder?.show()
     }
 
     private fun checkBasePath() {

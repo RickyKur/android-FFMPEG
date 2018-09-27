@@ -27,7 +27,7 @@ abstract class BaseActivity : AppCompatActivity() {
         const val REQ_CODE_IMAGE = 99
     }
 
-    lateinit var mMaterialDialogBuilder: MaterialDialog.Builder
+    var mMaterialDialogBuilder: MaterialDialog.Builder? = null
 
     var mMaterialDialog: MaterialDialog? = null
 
@@ -44,9 +44,9 @@ abstract class BaseActivity : AppCompatActivity() {
     }
 
     open fun setProgressDialog() {
-        mMaterialDialogBuilder.content("Wait")
-        mMaterialDialogBuilder.progressIndeterminateStyle(true)
-        mMaterialDialog = mMaterialDialogBuilder.show()
+        mMaterialDialogBuilder?.content("Wait")
+        mMaterialDialogBuilder?.progressIndeterminateStyle(true)
+        mMaterialDialog = mMaterialDialogBuilder?.show()
     }
 
     open fun checkForPermission() {
@@ -68,20 +68,20 @@ abstract class BaseActivity : AppCompatActivity() {
                 if ((grantResults.isNotEmpty()) && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     /*Do if success*/
                 } else {
-                    mMaterialDialogBuilder.content("Please enable all permission, to use this feature")
-                    mMaterialDialogBuilder.positiveText("Ok")
-                    mMaterialDialogBuilder.onPositive { _, _ -> finish() }
-                    mMaterialDialog = mMaterialDialogBuilder.show()
+                    mMaterialDialogBuilder?.content("Please enable all permission, to use this feature")
+                    mMaterialDialogBuilder?.positiveText("Ok")
+                    mMaterialDialogBuilder?.onPositive { _, _ -> finish() }
+                    mMaterialDialog = mMaterialDialogBuilder?.show()
                 }
             }
             BaseActivity.PERMISSION_READ -> {
                 if ((grantResults.isNotEmpty()) && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     /*Do if success*/
                 } else {
-                    mMaterialDialogBuilder.content("Please enable all permission, to use this feature")
-                    mMaterialDialogBuilder.positiveText("Iye")
-                    mMaterialDialogBuilder.onPositive { _, _ -> finish() }
-                    mMaterialDialog = mMaterialDialogBuilder.show()
+                    mMaterialDialogBuilder?.content("Please enable all permission, to use this feature")
+                    mMaterialDialogBuilder?.positiveText("Iye")
+                    mMaterialDialogBuilder?.onPositive { _, _ -> finish() }
+                    mMaterialDialog = mMaterialDialogBuilder?.show()
                 }
             }
         }
