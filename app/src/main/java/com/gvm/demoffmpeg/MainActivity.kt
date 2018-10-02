@@ -22,6 +22,7 @@ class MainActivity : BaseActivity() {
     private val mSingleObservable = Single.fromCallable {
         FileUtility.copyDirOrFileFromAsset(applicationContext, "fonts", BASE_FONT_DIR)
         FileUtility.copyDirOrFileFromAsset(applicationContext, "template", BASE_TEMPLATE_DIR)
+        FileUtility.copyDirOrFileFromAsset(applicationContext, "songs", BASE_AUDIO_DIR)
     }
     private val mCompositeDisposable: CompositeDisposable = CompositeDisposable()
     private var mDisposable: Disposable? = null
@@ -32,6 +33,7 @@ class MainActivity : BaseActivity() {
         setToolbar()
         initMaterialDialog()
         setListener()
+        initDisposableObserver()
     }
 
     private fun initMaterialDialog() {
@@ -45,9 +47,10 @@ class MainActivity : BaseActivity() {
     }
 
     private fun doOperations() {
-        setProgress()
-        checkBasePath()
-        initDisposableObserver()
+//        setProgress()
+//        checkBasePath()
+//        initDisposableObserver()
+        test1()
     }
 
     private fun setToolbar() {
@@ -57,9 +60,9 @@ class MainActivity : BaseActivity() {
     }
 
     private fun setProgress() {
-        mMaterialDialogBuilder?.content("Transporting assets file to sdcard, please wait")
+        mMaterialDialogBuilder?.content("Please waaaiiit")
         mMaterialDialogBuilder?.progressIndeterminateStyle(true)
-        mMaterialDialogBuilder?.progress(false, 250)
+        mMaterialDialogBuilder?.progress(true, 100)
         mMaterialDialog = mMaterialDialogBuilder?.show()
     }
 
@@ -78,12 +81,38 @@ class MainActivity : BaseActivity() {
     private fun initDisposableObserver() {
         mDisposable = mSingleObservable.subscribeOn(Schedulers.newThread()).observeOn(AndroidSchedulers.mainThread()).
                 subscribe({
-            mMaterialDialog?.incrementProgress(1)
-            changeImageToVideo()
-        }, { err ->
+                }, { err ->
             Log.e("Observable error", "The error is : $err")
         })
         mCompositeDisposable.add(mDisposable!!)
+    }
+
+    private fun test1() {
+        setProgress()
+        val fFmpeg = FFmpeg.getInstance(this)
+        val fontfile = BASE_FONT_DIR + "Lato-Black.ttf"
+        val inputName = BASE_OUTPUT_PATH + "demoAudio.mp4"
+        val audioName = BASE_AUDIO_DIR + "all-we-ever-do.m4a"
+        val outputname = BASE_OUTPUT_PATH + "demoAudioFade.mp4"
+        val command = arrayOf(
+                "-i", inputName,
+                "-filter_complex",
+                "[0:a]afade=t=out:st=21:d=2",
+                outputname
+        )
+        FileUtility.checkFileExists("demoAudioFade.mp4", BASE_OUTPUT_PATH)
+        fFmpeg.execute(command, object: ExecuteBinaryResponseHandler() {
+            override fun onSuccess(message: String?) {
+                mMaterialDialog?.dismiss()
+                Toast.makeText(this@MainActivity, "Oke", Toast.LENGTH_SHORT).show()
+            }
+
+            override fun onFailure(message: String?) {
+                mMaterialDialog?.dismiss()
+                Log.e("Error", message)
+                Toast.makeText(this@MainActivity, "Failed", Toast.LENGTH_SHORT).show()
+            }
+        })
     }
 
     private fun changeImageToVideo() {

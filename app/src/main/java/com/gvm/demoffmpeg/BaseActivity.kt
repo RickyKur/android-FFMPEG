@@ -19,6 +19,7 @@ abstract class BaseActivity : AppCompatActivity() {
         private const val mDirectoryName = "/Demo2"
         val mBasePath = Environment.getExternalStorageDirectory().path + mDirectoryName
         val BASE_FONT_DIR = "$mBasePath/fontDemo2/"
+        val BASE_AUDIO_DIR = "$mBasePath/songsDemo2/"
         val BASE_TEMPLATE_DIR = "$mBasePath/templateDemo2/"
         val BASE_OUTPUT_PATH = "$mBasePath/output/"
 
