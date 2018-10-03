@@ -30,6 +30,7 @@ class SlideShowActivity : BaseActivity(), SlideItemListener, CategoryClickListen
     private val mSingleObservable = Single.fromCallable {
         FileUtility.copyDirOrFileFromAsset(applicationContext, "fonts", BASE_FONT_DIR)
         FileUtility.copyDirOrFileFromAsset(applicationContext, "template", BASE_TEMPLATE_DIR)
+        FileUtility.copyDirOrFileFromAsset(applicationContext, "songs", BASE_AUDIO_DIR)
     }
     private val mAdapter = SlideItemAdapter(this)
     private var mCurrentPosition = 0
@@ -292,6 +293,17 @@ class SlideShowActivity : BaseActivity(), SlideItemListener, CategoryClickListen
                 }
             }
         })
+    }
+
+    private fun addAudio() {
+        val inputVideo = BaseActivity.BASE_OUTPUT_PATH + "_prototype_one_minute.mp4"
+        val outputName = BaseActivity.BASE_OUTPUT_PATH + "_prototype_one_minute_audio.mp4"
+        val inputAudio = BASE_AUDIO_DIR + "all-we-ever-do.m4a"
+        val command = arrayOf("-i", inputVideo)
+    }
+
+    private fun addFadeOutAudio() {
+
     }
 
     private fun setTextCategory(view: TextView) {

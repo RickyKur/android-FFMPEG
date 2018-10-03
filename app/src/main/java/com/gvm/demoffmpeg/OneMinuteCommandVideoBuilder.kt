@@ -312,8 +312,18 @@ class OneMinuteCommandVideoBuilder {
 
         /**
          * Get duration, accepts total slides array
+         *
+         * 80 for title, (size - 2)*180 for each slides (180 frame each slides), and 450 for end of slides and closing
          */
         fun getTotalDurationInFrameForVideo(size: Int): Int = 80 + ((size - 2) * 180 ) + 450
+
+        /**
+         * FPS is set to 45
+         */
+        fun getTotalDurationInSecondForVideo(size: Int): Double = 80.toDouble().frameToSecond() +
+                ((size - 2) * 180.toDouble().frameToSecond() ) + 450.toDouble().frameToSecond()
+
+        private fun Double.frameToSecond(): Double = this / 45
 
         fun getColorCategory(context: Context, categoryName: String): Int {
             return when (categoryName) {
