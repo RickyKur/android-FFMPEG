@@ -2,6 +2,7 @@ package com.gvm.demoffmpeg
 
 import android.app.Activity
 import android.content.Intent
+import android.media.MediaPlayer
 import android.os.Bundle
 import android.support.v7.widget.LinearLayoutManager
 import android.util.Log
@@ -25,7 +26,7 @@ import java.io.File
 /**
  * Brought to you by rickykurniawan on 04/09/18.
  */
-class SlideShowActivity : BaseActivity(), SlideItemListener, CategoryClickListener {
+class SlideShowActivity : BaseActivity(), SlideItemListener, CategoryClickListener, SongClickListener {
 
     private val mSingleObservable = Single.fromCallable {
         FileUtility.copyDirOrFileFromAsset(applicationContext, "fonts", BASE_FONT_DIR)
@@ -36,7 +37,9 @@ class SlideShowActivity : BaseActivity(), SlideItemListener, CategoryClickListen
     private var mCurrentPosition = 0
     private lateinit var mWindow: WindowView
     private var mCategoryName: String? = null
+    private var mSongName: String? = null
     private val mCompositeDisposable = CompositeDisposable()
+    private var mMediaPlayer: MediaPlayer = MediaPlayer()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -53,7 +56,7 @@ class SlideShowActivity : BaseActivity(), SlideItemListener, CategoryClickListen
     private fun createNecessaryFile() {
         checkBasePath()
         mCompositeDisposable.add(mSingleObservable.subscribeOn(Schedulers.newThread()).observeOn(AndroidSchedulers.mainThread()).subscribe({
-            Log.e("Copy asset folder","")
+            Log.e("Copy asset folder", "")
         }, { err ->
             Log.e("Observable error", "The error is : $err")
         }))
@@ -96,10 +99,17 @@ class SlideShowActivity : BaseActivity(), SlideItemListener, CategoryClickListen
 
     private fun initViews(position: Int, slideItem: SlideItemModel?) {
         setCategoryTextVisibility(position)
+        setMusicCardVisibility(position)
         setCategoryButtonVisibility(position)
         setTitleText(position, slideItem)
         setPreviewImageAndText(slideItem)
         setPunchLineItemVisibility(position)
+    }
+
+    private fun setMusicCardVisibility(position: Int) {
+        val visibility = if (position == 0) View.GONE
+        else View.VISIBLE
+        music_card.visibility = visibility
     }
 
     private fun setCategoryTextVisibility(position: Int) {
@@ -160,6 +170,7 @@ class SlideShowActivity : BaseActivity(), SlideItemListener, CategoryClickListen
 
     private fun setListeners() {
         cardViewCategory_e.setOnClickListener { mWindow.showOneMinuteVideoCategories(this) }
+        music_card_e.setOnClickListener { mWindow.showMusicList(::resetMedia, this) }
         publishButton.setOnClickListener { publishVideo() }
         mCompositeDisposable.add(RxTextView.textChanges(text_edittext).subscribe({
             val currentSlideItem = mAdapter.getSlideItems(mCurrentPosition)
@@ -197,8 +208,9 @@ class SlideShowActivity : BaseActivity(), SlideItemListener, CategoryClickListen
             1 -> Toast.makeText(this, "Please input more than 4 slides", Toast.LENGTH_SHORT).show()
             2 -> Toast.makeText(this, "Make sure you input the image for each slides", Toast.LENGTH_SHORT).show()
             3 -> Toast.makeText(this, "Please input punchline", Toast.LENGTH_SHORT).show()
+            4 -> Toast.makeText(this, "Please pick music/song for video", Toast.LENGTH_SHORT).show()
             200 -> {
-                mWindow.mDurationProgress = OneMinuteCommandVideoBuilder.getTotalDurationInFrameForVideo(mAdapter.mSlideItems.size) * 2
+                mWindow.mDurationProgress = OneMinuteCommandVideoBuilder.getTotalDurationInFrameForVideo(mAdapter.mSlideItems.size) * 3
                 mWindow.showPassCodeWindowView(::generateSlideVideo)
             }
         }
@@ -206,6 +218,7 @@ class SlideShowActivity : BaseActivity(), SlideItemListener, CategoryClickListen
 
     private fun validateInput(): Int {
         if (mCategoryName == null) return 0
+        if (mSongName == null) return 4
         if (mAdapter.mSlideItems.size < 2) {
             return 1
         } else {
@@ -237,6 +250,7 @@ class SlideShowActivity : BaseActivity(), SlideItemListener, CategoryClickListen
                 .generateOutput(outputName)
                 .buildString()
         FileUtility.checkFileExists("_prototype_slide.mp4", BASE_OUTPUT_PATH)
+        mWindow.updateProgressExplanation("0/3 Embedding images and texts")
         val ffmpeg = FFmpeg.getInstance(this)
         ffmpeg.execute(command1.toTypedArray(), object : ExecuteBinaryResponseHandler() {
             override fun onSuccess(message: String?) {
@@ -270,11 +284,13 @@ class SlideShowActivity : BaseActivity(), SlideItemListener, CategoryClickListen
                 .generateCommandForOverlayLogo(inputVideo, outputName)
                 .buildString()
         FileUtility.checkFileExists("_prototype_one_minute.mp4", BaseActivity.BASE_OUTPUT_PATH)
+        mWindow.updateProgressExplanation("1/3 Creating logo and animations")
         val ffmpeg = FFmpeg.getInstance(this)
         Log.d("FFMPEG", "$command")
         ffmpeg.execute(command.toTypedArray(), object : ExecuteBinaryResponseHandler() {
             override fun onSuccess(message: String?) {
-                mWindow.showSuccessViewLoading()
+//                mWindow.showSuccessViewLoading()
+                addAudio()
             }
 
             override fun onFailure(message: String?) {
@@ -296,14 +312,46 @@ class SlideShowActivity : BaseActivity(), SlideItemListener, CategoryClickListen
     }
 
     private fun addAudio() {
+        val fFmpeg = FFmpeg.getInstance(this)
+        val songName = OneMinuteCommandVideoBuilder.returnSongFileName(this, mSongName!!)
         val inputVideo = BaseActivity.BASE_OUTPUT_PATH + "_prototype_one_minute.mp4"
-        val outputName = BaseActivity.BASE_OUTPUT_PATH + "_prototype_one_minute_audio.mp4"
-        val inputAudio = BASE_AUDIO_DIR + "all-we-ever-do.m4a"
-        val command = arrayOf("-i", inputVideo)
-    }
+        val outputName = BaseActivity.BASE_OUTPUT_PATH + "one_minute.mp4"
+        val inputAudio = BASE_AUDIO_DIR + songName
+        val totalVideoDurationInSecond = OneMinuteCommandVideoBuilder.getTotalDurationInSecondForVideo(mAdapter.mSlideItems.size).toInt()
 
-    private fun addFadeOutAudio() {
+        val command = arrayOf(
+                "-i", inputVideo,
+                "-i", inputAudio,
+                "-filter_complex",
+                "aevalsrc=0:d=1.8[s1];" +
+                "[1:a]afade=t=out:st=${totalVideoDurationInSecond - 4}:d=2[fade];" +
+                "[s1][fade]concat=n=2:v=0:a=1[aout]",
+                "-c:v", "copy", "-shortest", "-map", "0:v", "-map", "[aout]",
+                outputName)
+        FileUtility.checkFileExists("one_minute.mp4", BASE_OUTPUT_PATH)
+        mWindow.updateProgressExplanation("2/3 Embedding audio to the video file")
+        fFmpeg.execute(command, object: ExecuteBinaryResponseHandler() {
+            override fun onSuccess(message: String?) {
+                mWindow.showSuccessViewLoading()
+                FileUtility.checkFileExists("", BASE_OUTPUT_PATH)
+            }
 
+            override fun onFailure(message: String?) {
+                Log.e("Error", "$message")
+                mWindow.dismissPassCodeView()
+            }
+
+            override fun onProgress(message: String?) {
+                val index: Int = message?.indexOf("fps=")!!
+                if (index > -1) {
+                    val substringIndex = message.substring(0, index)
+                    val replaceEmptyString = substringIndex.replace(" ", "")
+                    val frame = replaceEmptyString.substring(replaceEmptyString.lastIndexOf("=") + 1)
+                    val totalDuration = OneMinuteCommandVideoBuilder.getTotalDurationInFrameForVideo(mAdapter.mSlideItems.size)
+                    mWindow.updateProgressBar((totalDuration * 2) + frame.toInt())
+                }
+            }
+        })
     }
 
     private fun setTextCategory(view: TextView) {
@@ -312,10 +360,35 @@ class SlideShowActivity : BaseActivity(), SlideItemListener, CategoryClickListen
         view.setTextColor(OneMinuteCommandVideoBuilder.getTextColorForCategory(this, mCategoryName!!))
     }
 
+    private fun playSong() {
+        resetMedia()
+        val songFileName = OneMinuteCommandVideoBuilder.returnSongFileName(this, mSongName!!)
+        val descriptor = assets.openFd("songs/$songFileName")
+        mMediaPlayer.setDataSource(descriptor.fileDescriptor, descriptor.startOffset, descriptor.length)
+        descriptor.close()
+
+        mMediaPlayer.prepare()
+        mMediaPlayer.setVolume(1f, 1f)
+        mMediaPlayer.isLooping = false
+        mMediaPlayer.start()
+    }
+
+    private fun resetMedia() {
+        if (mMediaPlayer.isPlaying) {
+            mMediaPlayer.stop()
+            mMediaPlayer.reset()
+        }
+    }
+
     override fun onCategoryClicked(categoryName: String) {
         mCategoryName = categoryName
         setTextCategory(text_category)
         setTextCategory(text_category2)
+    }
+
+    override fun onSongClicked(songName: String) {
+        mSongName = songName
+        playSong()
     }
 
     override fun onSlideItemClick(position: Int) {
@@ -360,6 +433,8 @@ class SlideShowActivity : BaseActivity(), SlideItemListener, CategoryClickListen
     override fun onDestroy() {
         mCompositeDisposable.dispose()
         mWindow.dismiss()
+        mMediaPlayer.stop()
+        mMediaPlayer.release()
         super.onDestroy()
     }
 }

@@ -339,6 +339,19 @@ class OneMinuteCommandVideoBuilder {
             }
         }
 
+        fun returnSongFileName(context: Context, songName: String): String {
+            return when(songName) {
+                context.resources.getString(R.string.awed) -> "all-we-ever-do.m4a"
+                context.resources.getString(R.string.ca) -> "chasing-anonymous.m4a"
+                context.resources.getString(R.string.hiasom) -> "happy-is-a-state-of-mind.m4a"
+                context.resources.getString(R.string.jr) -> "jump-rope.m4a"
+                context.resources.getString(R.string.jb) -> "just-breath.m4a"
+                context.resources.getString(R.string.lil) -> "lost-in-love.m4a"
+                context.resources.getString(R.string.tms) -> "too-much-sugar.m4a"
+                else -> ""
+            }
+        }
+
         fun returnMarginForCategoryText(context: Context, categoryName: String): String {
             return when (categoryName) {
                 context.resources.getString(R.string.string_inspiratif) -> "-5"

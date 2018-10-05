@@ -23,8 +23,9 @@ import android.provider.OpenableColumns
  */
 object FileUtility {
 
+
     @Throws(IOException::class)
-    fun copyDirOrFileFromAsset(applicationContext: Context, assetDir: String, destinationDir: String): String {
+    fun copyDirOrFileFromAsset(applicationContext: Context, assetDir: String, destinationDir: String) {
         val destDirectory = File(destinationDir)
 
         createDir(destDirectory)
@@ -46,7 +47,6 @@ object FileUtility {
                 copyDirOrFileFromAsset(applicationContext, assetFilePath, addTrailingSlash(destinationDir) + file)
             }
         }
-        return destinationDir
     }
 
     @Throws(IOException::class)

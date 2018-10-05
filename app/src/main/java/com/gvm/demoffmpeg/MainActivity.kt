@@ -1,6 +1,7 @@
 package com.gvm.demoffmpeg
 
 import android.annotation.SuppressLint
+import android.media.MediaPlayer
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
@@ -26,6 +27,7 @@ class MainActivity : BaseActivity() {
     }
     private val mCompositeDisposable: CompositeDisposable = CompositeDisposable()
     private var mDisposable: Disposable? = null
+    private var mediaPlayer: MediaPlayer = MediaPlayer()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,6 +36,27 @@ class MainActivity : BaseActivity() {
         initMaterialDialog()
         setListener()
         initDisposableObserver()
+//        test()
+    }
+
+    private fun test() {
+        try {
+            if (mediaPlayer.isPlaying) {
+                mediaPlayer.stop()
+                mediaPlayer.release()
+                mediaPlayer = MediaPlayer()
+            }
+            val descriptor = assets.openFd("songs/all-we-ever-do.m4a")
+            mediaPlayer.setDataSource(descriptor.fileDescriptor, descriptor.startOffset, descriptor.length)
+            descriptor.close()
+
+            mediaPlayer.prepare()
+            mediaPlayer.setVolume(1f, 1f)
+            mediaPlayer.isLooping = false
+            mediaPlayer.start()
+        } catch (ex: Exception) {
+            Toast.makeText(this, "Woops, error", Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun initMaterialDialog() {
@@ -79,9 +102,8 @@ class MainActivity : BaseActivity() {
     }
 
     private fun initDisposableObserver() {
-        mDisposable = mSingleObservable.subscribeOn(Schedulers.newThread()).observeOn(AndroidSchedulers.mainThread()).
-                subscribe({
-                }, { err ->
+        mDisposable = mSingleObservable.subscribeOn(Schedulers.newThread()).observeOn(AndroidSchedulers.mainThread()).subscribe({
+        }, { err ->
             Log.e("Observable error", "The error is : $err")
         })
         mCompositeDisposable.add(mDisposable!!)
@@ -91,17 +113,21 @@ class MainActivity : BaseActivity() {
         setProgress()
         val fFmpeg = FFmpeg.getInstance(this)
         val fontfile = BASE_FONT_DIR + "Lato-Black.ttf"
-        val inputName = BASE_OUTPUT_PATH + "demoAudio.mp4"
+        val inputName = BASE_OUTPUT_PATH + "demo.mp4"
         val audioName = BASE_AUDIO_DIR + "all-we-ever-do.m4a"
-        val outputname = BASE_OUTPUT_PATH + "demoAudioFade.mp4"
+        val outputname = BASE_OUTPUT_PATH + "demoAudio.mp4"
         val command = arrayOf(
                 "-i", inputName,
+                "-i", audioName,
                 "-filter_complex",
-                "[0:a]afade=t=out:st=21:d=2",
+                "aevalsrc=0:d=1.8[s1];" +
+                "[1:a]afade=t=out:st=19:d=2[fade];" +
+                "[s1][fade]concat=n=2:v=0:a=1[aout]",
+                "-c:v", "copy", "-shortest", "-map", "0:v", "-map", "[aout]",
                 outputname
         )
-        FileUtility.checkFileExists("demoAudioFade.mp4", BASE_OUTPUT_PATH)
-        fFmpeg.execute(command, object: ExecuteBinaryResponseHandler() {
+        FileUtility.checkFileExists("demoAudio.mp4", BASE_OUTPUT_PATH)
+        fFmpeg.execute(command, object : ExecuteBinaryResponseHandler() {
             override fun onSuccess(message: String?) {
                 mMaterialDialog?.dismiss()
                 Toast.makeText(this@MainActivity, "Oke", Toast.LENGTH_SHORT).show()
@@ -160,15 +186,15 @@ class MainActivity : BaseActivity() {
                 //"[0:v]overlay=shortest=1[video1]; "+
 
                 "[1:v]fade=in:st=5:d=2:alpha=1, fade=out:st=7:d=2:alpha=1[image1];" +
-                "[0:v][image1]overlay=y=(H-h):shortest=1[video1];" +
-                "[video1]overlay=shortest=1[video2];"
+                        "[0:v][image1]overlay=y=(H-h):shortest=1[video1];" +
+                        "[video1]overlay=shortest=1[video2];"
                         +
-                "[video2]overlay= x=25 : y=if(between(t\\,0\\,0.5)\\, H-(((t-0)*h)/0.5)\\, if(gte(t\\,0.5)\\, (H-h)\\, H)):shortest=1[video3]; " +
-                "[video3]overlay= x=272: y=if(between(t\\,0.5\\,1.5)\\, H-(((t-0.5)*h)/1)\\, if(gte(t\\,1.5)\\, (H-h)\\, H)):shortest=1[video4];" +
-                "[video4]overlay= x=441: y=if(between(t\\,1.5\\,2.5)\\, H-(((t-1.5)*h)/1)\\, if(gte(t\\,2.5)\\, (H-h)\\, H)):shortest=1[video5];" +
-                "[video5]overlay= x=550: y=if(between(t\\,2.5\\,3.2)\\, H-(((t-2.5)*h)/0.7)\\, if(gte(t\\,3.2)\\, (H-h)\\, H)):shortest=1[video6];" +
-                "[video6]overlay= x=if(gte(t\\,5)\\,((-w)+((t-5)*125)) \\, (-w)): y=((H-h)/2)+70:shortest=1[video7];" +
-                "[video7]overlay= x=if(gte(t\\,5)\\,(W-((t-5)*125)) \\, W): y=((H-h)/2)-20:shortest=1",
+                        "[video2]overlay= x=25 : y=if(between(t\\,0\\,0.5)\\, H-(((t-0)*h)/0.5)\\, if(gte(t\\,0.5)\\, (H-h)\\, H)):shortest=1[video3]; " +
+                        "[video3]overlay= x=272: y=if(between(t\\,0.5\\,1.5)\\, H-(((t-0.5)*h)/1)\\, if(gte(t\\,1.5)\\, (H-h)\\, H)):shortest=1[video4];" +
+                        "[video4]overlay= x=441: y=if(between(t\\,1.5\\,2.5)\\, H-(((t-1.5)*h)/1)\\, if(gte(t\\,2.5)\\, (H-h)\\, H)):shortest=1[video5];" +
+                        "[video5]overlay= x=550: y=if(between(t\\,2.5\\,3.2)\\, H-(((t-2.5)*h)/0.7)\\, if(gte(t\\,3.2)\\, (H-h)\\, H)):shortest=1[video6];" +
+                        "[video6]overlay= x=if(gte(t\\,5)\\,((-w)+((t-5)*125)) \\, (-w)): y=((H-h)/2)+70:shortest=1[video7];" +
+                        "[video7]overlay= x=if(gte(t\\,5)\\,(W-((t-5)*125)) \\, W): y=((H-h)/2)-20:shortest=1",
 
                 BASE_OUTPUT_PATH + outputName)
         FileUtility.checkFileExists(outputName, BASE_OUTPUT_PATH)

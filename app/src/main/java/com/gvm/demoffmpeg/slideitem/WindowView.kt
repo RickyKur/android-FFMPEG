@@ -23,9 +23,11 @@ import kotlinx.android.synthetic.main.view_window_categories.view.*
 class WindowView(private val mContext: Context) {
 
     private var mWindow: WindowManager? = mContext.getSystemService(Context.WINDOW_SERVICE) as WindowManager
-    private var mPreviousViewClicked: View? = null
+    private var mPreviousCategoryViewClicked: View? = null
+    private var mPreviousSongViewClicked: View? = null
     private var mCategoryView: View? = null
     private var mPassCodeView: View? = null
+    private var mSongView: View? = null
 
     var mDurationProgress: Int = 0
 
@@ -92,12 +94,49 @@ class WindowView(private val mContext: Context) {
         }
     }
 
-    private fun onCategoryClicked(view: View) {
-        view.category_selected.visibility = View.VISIBLE
-        if (mPreviousViewClicked != null) {
-            mPreviousViewClicked!!.category_selected.visibility = View.GONE
+    fun showMusicList(actionDismiss: () -> Unit, listener: SongClickListener) {
+        val songs = arrayListOf(R.string.awed, R.string.ca, R.string.hiasom,
+                R.string.jr, R.string.jb, R.string.lil, R.string.tms)
+        val params = windowDefaultLayoutParams
+        if (mSongView != null) {
+            mWindow?.addView(mSongView, params)
+        } else {
+            val inflateView = LayoutInflater.from(mContext).inflate(R.layout.view_window_categories, null)
+            for (index in 0 until songs.size) {
+                val cardItemView = LayoutInflater.from(mContext).inflate(R.layout.card_category_item, null)
+                cardItemView.category_text.text = mContext.resources.getString(songs[index])
+                cardItemView.card_category_item_e.setOnClickListener {
+                    onSongClicked(cardItemView.category_card_item)
+                    listener.onSongClicked(cardItemView.category_text.text.toString())
+                }
+                inflateView.cards_container.addView(cardItemView)
+            }
+            val dismissButton = inflateView.dismiss_window
+            dismissButton.setOnClickListener {
+                mWindow?.removeView(mSongView)
+                actionDismiss()
+            }
+            mSongView = inflateView
+            mWindow?.addView(inflateView, params)
         }
-        mPreviousViewClicked = view
+    }
+
+    private fun onCategoryClicked(view: View) {
+        if (view.category_selected.visibility == View.VISIBLE) return
+        view.category_selected.visibility = View.VISIBLE
+        if (mPreviousCategoryViewClicked != null) {
+            mPreviousCategoryViewClicked!!.category_selected.visibility = View.GONE
+        }
+        mPreviousCategoryViewClicked = view
+    }
+
+    private fun onSongClicked(view: View) {
+        if (view.category_selected.visibility == View.VISIBLE) return
+        view.category_selected.visibility = View.VISIBLE
+        if (mPreviousSongViewClicked != null) {
+            mPreviousSongViewClicked!!.category_selected.visibility = View.GONE
+        }
+        mPreviousSongViewClicked = view
     }
 
     private fun showPassCodeViewLoading(inflateView: ViewGroup) {
@@ -123,6 +162,10 @@ class WindowView(private val mContext: Context) {
         mPassCodeView!!.progress_percentage.text = "$progress%"
     }
 
+    fun updateProgressExplanation(explanation: String) {
+        mPassCodeView!!.progress_explanation.text = explanation
+    }
+
     fun showSuccessViewLoading() {
         mPassCodeView!!.success_container.visibility = View.VISIBLE
         mPassCodeView!!.close.visibility = View.VISIBLE
@@ -142,6 +185,6 @@ class WindowView(private val mContext: Context) {
         mCategoryView = null
         mPassCodeView = null
         mWindow = null
-        mPreviousViewClicked = null
+        mPreviousCategoryViewClicked = null
     }
 }
