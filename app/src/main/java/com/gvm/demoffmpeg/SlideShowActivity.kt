@@ -14,25 +14,16 @@ import com.gvm.demoffmpeg.slideitem.*
 import com.jakewharton.rxbinding2.widget.RxTextView
 import com.theartofdev.edmodo.cropper.CropImage
 import com.theartofdev.edmodo.cropper.CropImageView
-import io.reactivex.Single
-import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.content_slideshow_item.*
 import nl.bravobit.ffmpeg.ExecuteBinaryResponseHandler
 import nl.bravobit.ffmpeg.FFmpeg
-import java.io.File
 
 /**
  * Brought to you by rickykurniawan on 04/09/18.
  */
 class SlideShowActivity : BaseActivity(), SlideItemListener, CategoryClickListener, SongClickListener {
 
-    private val mSingleObservable = Single.fromCallable {
-        FileUtility.copyDirOrFileFromAsset(applicationContext, "fonts", BASE_FONT_DIR)
-        FileUtility.copyDirOrFileFromAsset(applicationContext, "template", BASE_TEMPLATE_DIR)
-        FileUtility.copyDirOrFileFromAsset(applicationContext, "songs", BASE_AUDIO_DIR)
-    }
     private val mAdapter = SlideItemAdapter(this)
     private var mCurrentPosition = 0
     private lateinit var mWindow: WindowView
@@ -44,34 +35,12 @@ class SlideShowActivity : BaseActivity(), SlideItemListener, CategoryClickListen
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_slideshow_create)
-        createNecessaryFile()
         initMaterialDialog()
         setFontType()
         setAdapter()
         addSlides()
         setListeners()
         initViews(0, null)
-    }
-
-    private fun createNecessaryFile() {
-        checkBasePath()
-        mCompositeDisposable.add(mSingleObservable.subscribeOn(Schedulers.newThread()).observeOn(AndroidSchedulers.mainThread()).subscribe({
-            Log.e("Copy asset folder", "")
-        }, { err ->
-            Log.e("Observable error", "The error is : $err")
-        }))
-    }
-
-    private fun checkBasePath() {
-        val file = File(mBasePath)
-        if (!file.exists()) {
-            Log.e("CHECKBASEPATH", "File does not exist, creating the directory needed")
-            file.mkdirs()
-        }
-        val fileOutput = File(BASE_OUTPUT_PATH)
-        if (!fileOutput.exists()) {
-            fileOutput.mkdirs()
-        }
     }
 
     private fun initMaterialDialog() {
@@ -313,27 +282,17 @@ class SlideShowActivity : BaseActivity(), SlideItemListener, CategoryClickListen
 
     private fun addAudio() {
         val fFmpeg = FFmpeg.getInstance(this)
-        val songName = OneMinuteCommandVideoBuilder.returnSongFileName(this, mSongName!!)
+        val models = mAdapter.mSlideItems
         val inputVideo = BaseActivity.BASE_OUTPUT_PATH + "_prototype_one_minute.mp4"
-        val outputName = BaseActivity.BASE_OUTPUT_PATH + "one_minute.mp4"
-        val inputAudio = BASE_AUDIO_DIR + songName
-        val totalVideoDurationInSecond = OneMinuteCommandVideoBuilder.getTotalDurationInSecondForVideo(mAdapter.mSlideItems.size).toInt()
-
-        val command = arrayOf(
-                "-i", inputVideo,
-                "-i", inputAudio,
-                "-filter_complex",
-                "aevalsrc=0:d=1.8[s1];" +
-                "[1:a]afade=t=out:st=${totalVideoDurationInSecond - 4}:d=2[fade];" +
-                "[s1][fade]concat=n=2:v=0:a=1[aout]",
-                "-c:v", "copy", "-shortest", "-map", "0:v", "-map", "[aout]",
-                outputName)
-        FileUtility.checkFileExists("one_minute.mp4", BASE_OUTPUT_PATH)
+        val command = OneMinuteCommandVideoBuilder().withContext(this).loadModels(models)
+                .generateCommandToEmbedAudio(inputVideo, mSongName!!)
+                .buildString()
         mWindow.updateProgressExplanation("2/3 Embedding audio to the video file")
-        fFmpeg.execute(command, object: ExecuteBinaryResponseHandler() {
+        fFmpeg.execute(command.toTypedArray(), object: ExecuteBinaryResponseHandler() {
             override fun onSuccess(message: String?) {
                 mWindow.showSuccessViewLoading()
-                FileUtility.checkFileExists("", BASE_OUTPUT_PATH)
+                FileUtility.checkFileExists("_prototype_slide.mp4", BASE_OUTPUT_PATH)
+                FileUtility.checkFileExists("_prototype_one_minute.mp4", BASE_OUTPUT_PATH)
             }
 
             override fun onFailure(message: String?) {

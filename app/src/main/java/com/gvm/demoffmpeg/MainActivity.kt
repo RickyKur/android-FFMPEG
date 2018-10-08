@@ -20,11 +20,6 @@ import java.io.File
 @SuppressLint("Registered")
 class MainActivity : BaseActivity() {
 
-    private val mSingleObservable = Single.fromCallable {
-        FileUtility.copyDirOrFileFromAsset(applicationContext, "fonts", BASE_FONT_DIR)
-        FileUtility.copyDirOrFileFromAsset(applicationContext, "template", BASE_TEMPLATE_DIR)
-        FileUtility.copyDirOrFileFromAsset(applicationContext, "songs", BASE_AUDIO_DIR)
-    }
     private val mCompositeDisposable: CompositeDisposable = CompositeDisposable()
     private var mDisposable: Disposable? = null
     private var mediaPlayer: MediaPlayer = MediaPlayer()
@@ -35,7 +30,6 @@ class MainActivity : BaseActivity() {
         setToolbar()
         initMaterialDialog()
         setListener()
-        initDisposableObserver()
 //        test()
     }
 
@@ -87,26 +81,6 @@ class MainActivity : BaseActivity() {
         mMaterialDialogBuilder?.progressIndeterminateStyle(true)
         mMaterialDialogBuilder?.progress(true, 100)
         mMaterialDialog = mMaterialDialogBuilder?.show()
-    }
-
-    private fun checkBasePath() {
-        val file = File(mBasePath)
-        if (!file.exists()) {
-            Log.e("CHECKBASEPATH", "File does not exist, creating the directory needed")
-            file.mkdirs()
-        }
-        val fileOutput = File(BASE_OUTPUT_PATH)
-        if (!fileOutput.exists()) {
-            fileOutput.mkdirs()
-        }
-    }
-
-    private fun initDisposableObserver() {
-        mDisposable = mSingleObservable.subscribeOn(Schedulers.newThread()).observeOn(AndroidSchedulers.mainThread()).subscribe({
-        }, { err ->
-            Log.e("Observable error", "The error is : $err")
-        })
-        mCompositeDisposable.add(mDisposable!!)
     }
 
     private fun test1() {

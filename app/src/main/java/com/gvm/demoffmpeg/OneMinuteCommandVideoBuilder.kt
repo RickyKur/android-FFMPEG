@@ -21,10 +21,11 @@ class OneMinuteCommandVideoBuilder {
     private lateinit var mSlideModels: List<SlideItemModel>
     private lateinit var mContext: Context
 
-    private val mDirectoryName = "/Demo2"
+    private val mDirectoryName = "/OVC"
     val mBasePath = Environment.getExternalStorageDirectory().path + mDirectoryName
-    val BASE_FONT_DIR = "$mBasePath/fontDemo2/"
-    val BASE_TEMPLATE_DIR = "$mBasePath/templateDemo2/"
+    val BASE_FONT_DIR = "$mBasePath/font/"
+    val BASE_AUDIO_DIR = "$mBasePath/audio/"
+    val BASE_TEMPLATE_DIR = "$mBasePath/template/"
     val BASE_OUTPUT_PATH = "$mBasePath/output/"
 
     var mTotalDuration: Int = 0 /*Accepts total number of slides*/
@@ -238,12 +239,12 @@ class OneMinuteCommandVideoBuilder {
 //
         mGeneratedString.add("-filter_complex")
 
-        mFilterComplexString.append("[1:v]scale=(iw*1.25):(ih*1.25)[scl1];" +
+        mFilterComplexString.append("[1:v]scale=(iw*1.20):(ih*1.20)[scl1];" +
                 "[0:v][scl1]overlay=x=0:y=if(gte(t\\,$durationLogoDisappear)\\,-200\\,0)," +
                 "drawtext=fontfile=" + BaseActivity.BASE_FONT_DIR + "Lato-Black.ttf: text='\\  ${mCategoryName.toUpperCase()}\\                                                                                                       .':fontcolor=" +
-                "${getTextColorCategoryForFFMPEG(mContext, mCategoryName)}:fontsize=28:x=192:y=" +
+                "${getTextColorCategoryForFFMPEG(mContext, mCategoryName)}:fontsize=28:x=183:y=" +
                 "if(lte(t\\,3)\\,-th*2\\,if(lte(t\\,6)\\,min(12\\,(-th*2)+((t-3)*100))\\,max(-th*2\\,12-((t-6)*50)))):" +
-                "box=1:boxcolor=${getColorCategoryForFFMPEG(mContext, mCategoryName)}:boxborderw=17[logo];" +
+                "box=1:boxcolor=${getColorCategoryForFFMPEG(mContext, mCategoryName)}:boxborderw=16[logo];" +
                 "[4:v]scale=(iw*1.2):(ih*1.2)[scaledImage];" +
                 "[2:v][scaledImage]overlay=x=(W-w)/2:y=(H-h)/2[imageLogoOpini];" +
 
@@ -258,6 +259,46 @@ class OneMinuteCommandVideoBuilder {
                 "[ovr1][3:v]overlay=shortest=1:y=(t-$durationOfSlideTransition)*2100, format=yuv420p")
         mGeneratedString.add(mFilterComplexString.toString())
         mGeneratedString.add(outputName)
+        return this
+    }
+
+    /**
+     *
+     *  Roughly :
+    "-i", inputVideo,
+    "-i", inputAudio,
+    "-filter_complex",
+    "aevalsrc=0:d=1.8[s1];" +
+    "[1:a]afade=t=out:st=${totalVideoDurationInSecond - 4}:d=2[fade];" +
+    "[s1][fade]concat=n=2:v=0:a=1[aout]",
+    "-c:v", "copy", "-shortest", "-map", "0:v", "-map", "[aout]",
+    outputName)
+     */
+    fun generateCommandToEmbedAudio(inputVideo: String, songName: String): OneMinuteCommandVideoBuilder {
+        val songFileName = returnSongFileName(mContext, songName)
+        val inputAudio = BASE_AUDIO_DIR + songFileName
+        val coverName = mSlideModels[0].slideText
+        val totalVideoDurationInSecond = getTotalDurationInSecondForVideo(mSlideModels.size)
+        val outputName = "$BASE_OUTPUT_PATH$coverName.mp4"
+        val audioLengthInSecond = FileUtility.getAudioFileLength(mContext.applicationContext, inputAudio)
+
+        mGeneratedString.add("-i"); mGeneratedString.add(inputVideo)
+        mGeneratedString.add("-i"); mGeneratedString.add(inputAudio)
+        mGeneratedString.add("-filter_complex")
+        mFilterComplexString.append("aevalsrc=0:d=1.8[s1];" +
+                "[1:a]afade=t=out:st=${totalVideoDurationInSecond - 4}:d=2[fade];" +
+                "[s1][fade]concat=n=2:v=0:a=1[aout]")
+        mGeneratedString.add(mFilterComplexString.toString())
+        mGeneratedString.add("-c:v"); mGeneratedString.add("copy")
+
+        if (audioLengthInSecond > totalVideoDurationInSecond) /*match the video duration if audio is longer, don't do anything if audio length is shorter*/
+            mGeneratedString.add("-shortest")
+
+        mGeneratedString.add("-map")
+        mGeneratedString.add("0:v"); mGeneratedString.add("-map")
+        mGeneratedString.add("[aout]"); mGeneratedString.add(outputName)
+
+        FileUtility.checkFileExists("$coverName.mp4", BaseActivity.BASE_OUTPUT_PATH)
         return this
     }
 
@@ -351,6 +392,9 @@ class OneMinuteCommandVideoBuilder {
                 else -> ""
             }
         }
+
+        fun returnNameForVideoBasedOnCoverText(coverName: String): String =
+                coverName.replace("\r\n", " ").replace("\n", " ")
 
         fun returnMarginForCategoryText(context: Context, categoryName: String): String {
             return when (categoryName) {

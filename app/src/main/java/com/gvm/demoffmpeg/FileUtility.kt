@@ -5,6 +5,7 @@ import android.content.ContentUris
 import android.content.Context
 import android.content.Intent
 import android.database.Cursor
+import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
@@ -132,6 +133,15 @@ object FileUtility {
             }
         }
         return result
+    }
+
+    fun getAudioFileLength(applicationContext: Context, pathToAudioFile: String): Int {
+        val uri = Uri.parse(pathToAudioFile)
+        val mediaMetaDataRetriever = MediaMetadataRetriever()
+        mediaMetaDataRetriever.setDataSource(applicationContext, uri)
+        val duration = mediaMetaDataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
+        val milliSecond = duration.toInt()
+        return milliSecond / 1000
     }
 
     @TargetApi(Build.VERSION_CODES.KITKAT)
